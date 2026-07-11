@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Objects;
 
 final class ClaudeCliBackend implements AiBackend {
-    static final String BACKEND_NAME = "Claude CLI";
+    static final BackendId BACKEND_ID = new BackendId("Claude CLI");
 
     private final CommandExecutor commandExecutor;
     private final Duration timeout;
@@ -20,10 +20,16 @@ final class ClaudeCliBackend implements AiBackend {
         return askWithResult(request).response();
     }
 
+    @Override
+    public boolean supportsSystemPrompt() {
+        return false;
+    }
+
     ClaudeCliRun askWithResult(AiRequest request) {
         Objects.requireNonNull(request, "request");
-        if (request.systemPrompt().isPresent()) {
-            throw new AiBackendException("Claude CLI backend does not support system prompts yet.", BACKEND_NAME, (CommandResult) null);
+        if (request.systemPrompt().isPresent() && !supportsSystemPrompt()) {
+            throw new AiBackendUnsupportedRequestException(
+                    "Claude CLI backend does not support system prompts yet.", BACKEND_ID);
         }
 
         List<String> command = List.of("claude", "-p", request.prompt());
@@ -31,19 +37,20 @@ final class ClaudeCliBackend implements AiBackend {
         try {
             result = commandExecutor.run(new CommandRequest(command, "", timeout));
         } catch (CommandExecutionException exception) {
-            throw new AiBackendException("Could not start Claude CLI: " + exception.getMessage(), BACKEND_NAME, exception);
+            throw new AiBackendStartupException(
+                    "Could not start Claude CLI: " + exception.getMessage(), BACKEND_ID, exception);
         }
 
         if (result.timedOut()) {
-            throw new AiBackendException("Claude CLI timed out after " + timeout, BACKEND_NAME, result);
+            throw new AiBackendExecutionException("Claude CLI timed out after " + timeout, BACKEND_ID, result);
         }
         if (result.exitCode() != 0) {
-            throw new AiBackendException(nonzeroExitMessage(result), BACKEND_NAME, result);
+            throw new AiBackendExecutionException(nonzeroExitMessage(result), BACKEND_ID, result);
         }
 
         AiResponse response = new AiResponse(
                 result.standardOutput(),
-                BACKEND_NAME,
+                BACKEND_ID,
                 result.duration()
         );
         return new ClaudeCliRun(response, result, command);

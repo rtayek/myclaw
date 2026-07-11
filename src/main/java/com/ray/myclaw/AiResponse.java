@@ -5,12 +5,12 @@ import java.util.Objects;
 
 record AiResponse(
         String text,
-        String backendName,
+        BackendId backendId,
         Duration duration
 ) {
     AiResponse {
         Objects.requireNonNull(text, "text");
-        Objects.requireNonNull(backendName, "backendName");
+        Objects.requireNonNull(backendId, "backendId");
         Objects.requireNonNull(duration, "duration");
     }
 }

@@ -1,28 +1,27 @@
 package com.ray.myclaw;
 
+import java.util.Objects;
 import java.util.Optional;
 
-final class AiBackendException extends RuntimeException {
-    private final String backendName;
-    private final CommandResult commandResult;
+sealed abstract class AiBackendException extends RuntimeException
+        permits AiBackendStartupException, AiBackendExecutionException, AiBackendUnsupportedRequestException {
+    private final BackendId backendId;
 
-    AiBackendException(String message, String backendName, CommandResult commandResult) {
+    AiBackendException(String message, BackendId backendId) {
         super(message);
-        this.backendName = backendName;
-        this.commandResult = commandResult;
+        this.backendId = Objects.requireNonNull(backendId, "backendId");
     }
 
-    AiBackendException(String message, String backendName, Throwable cause) {
+    AiBackendException(String message, BackendId backendId, Throwable cause) {
         super(message, cause);
-        this.backendName = backendName;
-        this.commandResult = null;
+        this.backendId = Objects.requireNonNull(backendId, "backendId");
     }
 
-    String backendName() {
-        return backendName;
+    BackendId backendId() {
+        return backendId;
     }
 
     Optional<CommandResult> commandResult() {
-        return Optional.ofNullable(commandResult);
+        return Optional.empty();
     }
 }

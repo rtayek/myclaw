@@ -5,6 +5,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 public final class HarnessMain {
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(60);
@@ -13,30 +14,48 @@ public final class HarnessMain {
     }
 
     public static void main(String[] args) {
-        ClaudeCliBackend claudeBackend = new ClaudeCliBackend(new CommandRunner(), DEFAULT_TIMEOUT);
+        Map<String, AiBackend> backends = Map.of(
+                "claude", new ClaudeCliBackend(new CommandRunner(), DEFAULT_TIMEOUT)
+        );
         int exitCode = new HarnessMainApplication(
-                claudeBackend,
+                backends,
                 new TranscriptWriter(Path.of("runs")),
-                Clock.systemUTC()
+                Clock.systemUTC(),
+                new ResultReporter(System.out, System.err)
         ).run(args);
         System.exit(exitCode);
     }
 }
 
 final class HarnessMainApplication {
-    private final ClaudeCliBackend claudeBackend;
+    private static final String USAGE = "Usage: java -jar ai-harness.jar <backend> \"prompt\"";
+
+    private final Map<String, AiBackend> backends;
     private final TranscriptWriter transcriptWriter;
     private final Clock clock;
+    private final ResultReporter reporter;
 
-    HarnessMainApplication(ClaudeCliBackend claudeBackend, TranscriptWriter transcriptWriter, Clock clock) {
-        this.claudeBackend = claudeBackend;
+    HarnessMainApplication(
+            Map<String, AiBackend> backends,
+            TranscriptWriter transcriptWriter,
+            Clock clock,
+            ResultReporter reporter
+    ) {
+        this.backends = backends;
         this.transcriptWriter = transcriptWriter;
         this.clock = clock;
+        this.reporter = reporter;
     }
 
     int run(String[] args) {
-        if (args.length != 2 || !"claude".equals(args[0])) {
-            System.err.println("Usage: java -jar ai-harness.jar claude \"prompt\"");
+        if (args.length != 2) {
+            reporter.reportUsageError(USAGE);
+            return 2;
+        }
+
+        AiBackend backend = backends.get(args[0]);
+        if (backend == null) {
+            reporter.reportUsageError(USAGE);
             return 2;
         }
 
@@ -44,35 +63,43 @@ final class HarnessMainApplication {
         Instant started = clock.instant();
         String runId = TranscriptWriter.newRunId();
         try {
-            ClaudeCliRun run = claudeBackend.askWithResult(request);
-            System.out.print(run.response().text());
-            writeSuccessfulTranscript(runId, started, request, run);
+            if (backend instanceof ClaudeCliBackend cliBackend) {
+                ClaudeCliRun run = cliBackend.askWithResult(request);
+                reporter.reportSuccess(run.response());
+                writeSuccessfulTranscript(runId, started, request, run.response(), run.command(), run.commandResult());
+            } else {
+                AiResponse response = backend.ask(request);
+                reporter.reportSuccess(response);
+                writeSuccessfulTranscript(runId, started, request, response, List.of(), null);
+            }
             return 0;
         } catch (AiBackendException exception) {
             writeFailedTranscript(runId, started, request, exception);
-            System.err.println(exception.getMessage());
-            exception.commandResult()
-                    .map(CommandResult::standardError)
-                    .filter(stderr -> !stderr.isBlank())
-                    .ifPresent(System.err::print);
+            reporter.reportFailure(exception);
             return 1;
         } catch (TranscriptWriteException exception) {
-            System.err.println(exception.getMessage());
+            reporter.reportTranscriptWriteFailure(exception);
             return 1;
         }
     }
 
-    private void writeSuccessfulTranscript(String runId, Instant started, AiRequest request, ClaudeCliRun run) {
-        Transcript transcript = new Transcript(
+    private void writeSuccessfulTranscript(
+            String runId,
+            Instant started,
+            AiRequest request,
+            AiResponse response,
+            List<String> command,
+            CommandResult commandResult
+    ) {
+        Transcript transcript = Transcript.success(
                 runId,
-                run.response().backendName(),
+                response.backendId(),
                 started,
-                run.response().duration(),
+                response.duration(),
                 request,
-                run.response().text(),
-                run.command(),
-                run.commandResult(),
-                null
+                response.text(),
+                command,
+                commandResult
         );
         transcriptWriter.write(transcript);
     }
@@ -81,20 +108,20 @@ final class HarnessMainApplication {
         CommandResult commandResult = exception.commandResult().orElse(null);
         Duration duration = commandResult == null ? Duration.between(started, clock.instant()) : commandResult.duration();
         try {
-            Transcript transcript = new Transcript(
+            Transcript transcript = Transcript.failure(
                     runId,
-                    exception.backendName(),
+                    exception.backendId(),
                     started,
                     duration,
                     request,
                     commandResult == null ? "" : commandResult.standardOutput(),
-                    List.of("claude", "-p", request.prompt()),
+                    List.of(),
                     commandResult,
                     exception.getMessage()
             );
             transcriptWriter.write(transcript);
         } catch (TranscriptWriteException transcriptException) {
-            System.err.println(transcriptException.getMessage());
+            reporter.reportTranscriptWriteFailure(transcriptException);
         }
     }
 }

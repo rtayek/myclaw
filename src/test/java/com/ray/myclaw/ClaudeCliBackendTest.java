@@ -20,7 +20,7 @@ final class ClaudeCliBackendTest {
         AiResponse response = backend.ask(AiRequest.of("Say exactly: OK"));
 
         assertEquals("OK\n", response.text());
-        assertEquals("Claude CLI", response.backendName());
+        assertEquals("Claude CLI", response.backendId().value());
         assertEquals(Duration.ofMillis(12), response.duration());
     }
 

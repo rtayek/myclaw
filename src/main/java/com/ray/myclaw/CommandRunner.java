@@ -13,7 +13,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 final class CommandRunner implements CommandExecutor {
-    static {
+    CommandRunner() {
         System.setProperty("jdk.lang.Process.allowAmbiguousCommands", "false");
     }
 
