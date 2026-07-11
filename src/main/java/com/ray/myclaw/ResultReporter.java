@@ -21,6 +21,7 @@ final class ResultReporter {
         exception.commandResult()
                 .map(CommandResult::standardError)
                 .filter(stderr -> !stderr.isBlank())
+                .filter(stderr -> !exception.getMessage().contains(stderr.strip()))
                 .ifPresent(err::print);
     }
 

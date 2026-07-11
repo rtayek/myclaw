@@ -74,7 +74,7 @@ final class HarnessMainApplication {
             }
             return 0;
         } catch (AiBackendException exception) {
-            writeFailedTranscript(runId, started, request, exception);
+            writeFailedTranscript(runId, started, request, failedCommandFor(backend, request), exception);
             reporter.reportFailure(exception);
             return 1;
         } catch (TranscriptWriteException exception) {
@@ -104,7 +104,13 @@ final class HarnessMainApplication {
         transcriptWriter.write(transcript);
     }
 
-    private void writeFailedTranscript(String runId, Instant started, AiRequest request, AiBackendException exception) {
+    private void writeFailedTranscript(
+            String runId,
+            Instant started,
+            AiRequest request,
+            List<String> command,
+            AiBackendException exception
+    ) {
         CommandResult commandResult = exception.commandResult().orElse(null);
         Duration duration = commandResult == null ? Duration.between(started, clock.instant()) : commandResult.duration();
         try {
@@ -115,7 +121,7 @@ final class HarnessMainApplication {
                     duration,
                     request,
                     commandResult == null ? "" : commandResult.standardOutput(),
-                    List.of(),
+                    command,
                     commandResult,
                     exception.getMessage()
             );
@@ -123,5 +129,12 @@ final class HarnessMainApplication {
         } catch (TranscriptWriteException transcriptException) {
             reporter.reportTranscriptWriteFailure(transcriptException);
         }
+    }
+
+    private static List<String> failedCommandFor(AiBackend backend, AiRequest request) {
+        if (backend instanceof ClaudeCliBackend) {
+            return ClaudeCliBackend.commandFor(request);
+        }
+        return List.of();
     }
 }

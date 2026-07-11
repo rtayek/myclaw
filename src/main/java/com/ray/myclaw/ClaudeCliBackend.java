@@ -20,8 +20,7 @@ final class ClaudeCliBackend implements AiBackend {
         return askWithResult(request).response();
     }
 
-    @Override
-    public boolean supportsSystemPrompt() {
+    boolean supportsSystemPrompt() {
         return false;
     }
 
@@ -32,7 +31,7 @@ final class ClaudeCliBackend implements AiBackend {
                     "Claude CLI backend does not support system prompts yet.", BACKEND_ID);
         }
 
-        List<String> command = List.of("claude", "-p", request.prompt());
+        List<String> command = commandFor(request);
         CommandResult result;
         try {
             result = commandExecutor.run(new CommandRequest(command, "", timeout));
@@ -62,5 +61,10 @@ final class ClaudeCliBackend implements AiBackend {
             return message + ": " + result.standardError().strip();
         }
         return message;
+    }
+
+    static List<String> commandFor(AiRequest request) {
+        Objects.requireNonNull(request, "request");
+        return List.of("claude", "-p", request.prompt());
     }
 }
