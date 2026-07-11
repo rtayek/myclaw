@@ -1,0 +1,67 @@
+plugins {
+    id 'application'
+    id 'java'
+}
+
+group = 'com.ray'
+version = '0.1.0'
+
+layout.buildDirectory = layout.projectDirectory.dir('.gradle-build')
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+application {
+    mainClass = 'com.ray.myclaw.HarnessMain'
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:6.0.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:6.0.0'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.withType(Test).configureEach {
+    def runStamp = providers.provider { Long.toString(System.currentTimeMillis()) }
+    binaryResultsDirectory = layout.buildDirectory.dir("test-results/${name}/binary-${runStamp.get()}")
+    reports.junitXml.outputLocation = layout.buildDirectory.dir("test-results/${name}/xml-${runStamp.get()}")
+    reports.html.outputLocation = layout.buildDirectory.dir("reports/tests/${name}-${runStamp.get()}")
+}
+
+sourceSets {
+    claudeSmokeTest {
+        java.srcDir 'src/claudeSmokeTest/java'
+        compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+        runtimeClasspath += output + compileClasspath
+    }
+}
+
+configurations {
+    claudeSmokeTestImplementation.extendsFrom testImplementation
+    claudeSmokeTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+tasks.register('claudeSmokeTest', Test) {
+    description = 'Runs the explicitly enabled Claude CLI smoke test.'
+    group = 'verification'
+    testClassesDirs = sourceSets.claudeSmokeTest.output.classesDirs
+    classpath = sourceSets.claudeSmokeTest.runtimeClasspath
+    useJUnitPlatform()
+    shouldRunAfter test
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': application.mainClass.get()
+    }
+}
