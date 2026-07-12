@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.awt.Cursor;
+import java.awt.Font;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.time.Clock;
@@ -24,6 +25,41 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 final class MyClawDesktopFrameTest {
     @TempDir
     Path tempDir;
+
+    @Test
+    void textAreasStartWithReadableDefaultFont() throws Exception {
+        MyClawDesktopFrame frame = frameWith("claude", request ->
+                new AiResponse("", new BackendId("Claude CLI"), Duration.ZERO)
+        );
+        try {
+            onEdt(() -> {
+                assertEquals(Font.MONOSPACED, frame.promptFontForTest().getFamily());
+                assertEquals(18, frame.promptFontForTest().getSize());
+                assertEquals(frame.promptFontForTest(), frame.transcriptFontForTest());
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
+    void fontSelectorUpdatesPromptAndTranscriptFonts() throws Exception {
+        MyClawDesktopFrame frame = frameWith("claude", request ->
+                new AiResponse("", new BackendId("Claude CLI"), Duration.ZERO)
+        );
+        try {
+            onEdt(() -> {
+                frame.selectFontFamilyForTest(Font.SERIF);
+                frame.selectFontSizeForTest(28);
+
+                assertEquals(Font.SERIF, frame.promptFontForTest().getFamily());
+                assertEquals(28, frame.promptFontForTest().getSize());
+                assertEquals(frame.promptFontForTest(), frame.transcriptFontForTest());
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
 
     @Test
     void acceptedRequestShowsWorkingStateAndPreventsDuplicateSubmission() throws Exception {

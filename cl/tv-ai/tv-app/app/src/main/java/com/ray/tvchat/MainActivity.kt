@@ -205,7 +205,7 @@ fun MessageBubble(msg: ChatMessage) {
             lineHeight = 26.sp,
             color = Color(0xFFE6EDF3),
             modifier = Modifier
-                .widthIn(max = 640.dp)
+                .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
                 .background(bg)
                 .padding(horizontal = 14.dp, vertical = 10.dp),

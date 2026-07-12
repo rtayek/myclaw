@@ -4,10 +4,14 @@ import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.BorderFactory;
@@ -34,10 +38,15 @@ final class MyClawDesktopFrame extends JFrame {
             new BackendChoice("claude", "Claude"),
             new BackendChoice("glm", "GLM")
     );
+    private static final String DEFAULT_FONT_FAMILY = Font.MONOSPACED;
+    private static final int DEFAULT_FONT_SIZE = 18;
+    private static final List<Integer> FONT_SIZES = List.of(14, 16, 18, 20, 24, 28, 32, 36, 42, 48);
 
     private final PromptService promptService;
     private final JComboBox<BackendChoice> backendCombo;
-    private final JTextArea transcriptArea;
+    private final JComboBox<String> fontFamilyCombo;
+    private final JComboBox<Integer> fontSizeCombo;
+    private final TranscriptView transcriptView;
     private final JTextArea promptArea;
     private final JButton sendButton;
     private final JButton clearButton;
@@ -54,7 +63,9 @@ final class MyClawDesktopFrame extends JFrame {
         this.promptService = Objects.requireNonNull(promptService, "promptService");
         Objects.requireNonNull(themeManager, "themeManager");
         this.backendCombo = new JComboBox<>(BACKEND_CHOICES.toArray(BackendChoice[]::new));
-        this.transcriptArea = new JTextArea();
+        this.fontFamilyCombo = new JComboBox<>(availableFontFamilies().toArray(String[]::new));
+        this.fontSizeCombo = new JComboBox<>(FONT_SIZES.toArray(Integer[]::new));
+        this.transcriptView = new TranscriptView();
         this.promptArea = new JTextArea(6, 60);
         this.sendButton = new JButton("Send");
         this.clearButton = new JButton("Clear");
@@ -62,7 +73,8 @@ final class MyClawDesktopFrame extends JFrame {
         this.progressBar = new JProgressBar();
 
         configureFrame();
-        configureTextAreas();
+        configurePromptArea();
+        configureFontControls();
         configureProgressBar();
         setJMenuBar(menuBar(themeManager));
         setContentPane(contentPanel());
@@ -97,19 +109,17 @@ final class MyClawDesktopFrame extends JFrame {
         setPreferredSize(new Dimension(1050, 780));
     }
 
-    private void configureTextAreas() {
-        Font readableFont = new Font(Font.MONOSPACED, Font.PLAIN, 18);
-        transcriptArea.setEditable(false);
-        transcriptArea.setLineWrap(true);
-        transcriptArea.setWrapStyleWord(true);
-        transcriptArea.setFont(readableFont);
-        transcriptArea.setMargin(new Insets(12, 12, 12, 12));
-
+    private void configurePromptArea() {
         promptArea.setEditable(true);
         promptArea.setLineWrap(true);
         promptArea.setWrapStyleWord(true);
-        promptArea.setFont(readableFont);
         promptArea.setMargin(new Insets(12, 12, 12, 12));
+    }
+
+    private void configureFontControls() {
+        fontFamilyCombo.setSelectedItem(DEFAULT_FONT_FAMILY);
+        fontSizeCombo.setSelectedItem(DEFAULT_FONT_SIZE);
+        applySelectedTextFont();
     }
 
     private void configureProgressBar() {
@@ -125,11 +135,24 @@ final class MyClawDesktopFrame extends JFrame {
         JPanel topPanel = new JPanel(new BorderLayout(8, 8));
         topPanel.add(new JLabel("Backend:"), BorderLayout.WEST);
         topPanel.add(backendCombo, BorderLayout.CENTER);
-        topPanel.add(clearButton, BorderLayout.EAST);
+
+        JPanel viewControls = new JPanel(new BorderLayout(8, 8));
+        viewControls.add(new JLabel("Font:"), BorderLayout.WEST);
+        viewControls.add(fontFamilyCombo, BorderLayout.CENTER);
+
+        JPanel sizeControls = new JPanel(new BorderLayout(8, 8));
+        sizeControls.add(new JLabel("Size:"), BorderLayout.WEST);
+        sizeControls.add(fontSizeCombo, BorderLayout.CENTER);
+        viewControls.add(sizeControls, BorderLayout.EAST);
+
+        JPanel rightControls = new JPanel(new BorderLayout(8, 8));
+        rightControls.add(viewControls, BorderLayout.CENTER);
+        rightControls.add(clearButton, BorderLayout.EAST);
+        topPanel.add(rightControls, BorderLayout.EAST);
 
         JSplitPane splitPane = new JSplitPane(
                 JSplitPane.VERTICAL_SPLIT,
-                new JScrollPane(transcriptArea),
+                new JScrollPane(transcriptView.component()),
                 new JScrollPane(promptArea)
         );
         splitPane.setResizeWeight(0.75);
@@ -150,8 +173,10 @@ final class MyClawDesktopFrame extends JFrame {
 
     private void wireActions() {
         sendButton.addActionListener(event -> sendPrompt());
+        fontFamilyCombo.addActionListener(event -> applySelectedTextFont());
+        fontSizeCombo.addActionListener(event -> applySelectedTextFont());
         clearButton.addActionListener(event -> {
-            transcriptArea.setText("");
+            transcriptView.clear();
             promptArea.requestFocusInWindow();
         });
         promptArea.getDocument().addDocumentListener(new DocumentListener() {
@@ -206,7 +231,7 @@ final class MyClawDesktopFrame extends JFrame {
 
         String prompt = promptArea.getText();
         if (prompt.isBlank()) {
-            appendBlock("Error", "Prompt is empty.");
+            transcriptView.appendError("Error", "Prompt is empty.");
             showReady();
             promptArea.requestFocusInWindow();
             return;
@@ -214,11 +239,11 @@ final class MyClawDesktopFrame extends JFrame {
 
         BackendChoice backend = (BackendChoice) backendCombo.getSelectedItem();
         if (backend == null) {
-            appendBlock("Error", "No backend selected.");
+            transcriptView.appendError("Error", "No backend selected.");
             return;
         }
 
-        appendBlock("You", prompt);
+        transcriptView.appendUser(prompt);
         promptArea.setText("");
         showWorking(backend);
 
@@ -232,17 +257,17 @@ final class MyClawDesktopFrame extends JFrame {
             protected void done() {
                 try {
                     PromptResult result = get();
-                    appendBlock(result.backendLabel(), result.response());
+                    transcriptView.appendAssistant(result.backendLabel(), result.response());
                     showSucceeded();
                 } catch (InterruptedException exception) {
                     Thread.currentThread().interrupt();
-                    appendBlock(backend.label() + " error", "Interrupted while waiting for response.");
+                    transcriptView.appendError(backend.label() + " error", "Interrupted while waiting for response.");
                     showFailed();
                 } catch (ExecutionException exception) {
-                    appendBlock(backend.label() + " error", DesktopErrorFormatter.messageFor(exception.getCause()));
+                    transcriptView.appendError(backend.label() + " error", DesktopErrorFormatter.messageFor(exception.getCause()));
                     showFailed();
                 } catch (RuntimeException exception) {
-                    appendBlock(backend.label() + " error", DesktopErrorFormatter.messageFor(exception));
+                    transcriptView.appendError(backend.label() + " error", DesktopErrorFormatter.messageFor(exception));
                     showFailed();
                 } finally {
                     promptArea.requestFocusInWindow();
@@ -299,17 +324,24 @@ final class MyClawDesktopFrame extends JFrame {
         sendButton.setEnabled(!requestActive && !promptArea.getText().isBlank());
     }
 
-    private void appendBlock(String label, String text) {
-        if (!transcriptArea.getText().isEmpty()) {
-            transcriptArea.append("\n\n");
+    private void applySelectedTextFont() {
+        Object selectedFamily = fontFamilyCombo.getSelectedItem();
+        Object selectedSize = fontSizeCombo.getSelectedItem();
+        if (!(selectedFamily instanceof String family) || !(selectedSize instanceof Integer size)) {
+            return;
         }
-        transcriptArea.append(label);
-        transcriptArea.append(":\n");
-        transcriptArea.append(text);
-        if (!text.endsWith("\n")) {
-            transcriptArea.append("\n");
-        }
-        transcriptArea.setCaretPosition(transcriptArea.getDocument().getLength());
+        Font selectedFont = new Font(family, Font.PLAIN, size);
+        transcriptView.setFont(selectedFont);
+        promptArea.setFont(selectedFont);
+    }
+
+    private static List<String> availableFontFamilies() {
+        TreeSet<String> families = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        families.add(DEFAULT_FONT_FAMILY);
+        families.add(Font.SANS_SERIF);
+        families.add(Font.SERIF);
+        families.addAll(Arrays.asList(GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames()));
+        return new ArrayList<>(families);
     }
 
     boolean requestActive() {
@@ -333,11 +365,27 @@ final class MyClawDesktopFrame extends JFrame {
     }
 
     String transcriptText() {
-        return transcriptArea.getText();
+        return transcriptView.text();
     }
 
     void setPromptText(String prompt) {
         promptArea.setText(prompt);
+    }
+
+    void selectFontFamilyForTest(String family) {
+        fontFamilyCombo.setSelectedItem(family);
+    }
+
+    void selectFontSizeForTest(int size) {
+        fontSizeCombo.setSelectedItem(size);
+    }
+
+    Font promptFontForTest() {
+        return promptArea.getFont();
+    }
+
+    Font transcriptFontForTest() {
+        return transcriptView.currentFont();
     }
 
     void selectBackend(String backendId) {

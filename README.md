@@ -94,6 +94,7 @@ The desktop client provides:
 
 ```text
 Backend selector: Claude or GLM
+Font family and size selectors
 Multiline prompt input
 Ctrl+Enter to send
 Scrollable, copyable prompt/response display
