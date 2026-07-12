@@ -5,6 +5,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.time.Clock;
@@ -15,7 +17,10 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
+import javax.swing.Action;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import myclaw.application.PromptService;
@@ -25,6 +30,8 @@ import myclaw.transcript.TranscriptWriter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class MyClawDesktopFrameTest {
@@ -144,6 +151,235 @@ final class MyClawDesktopFrameTest {
     }
 
     @Test
+    void requiredActionsExistAndExposePresentationMetadata() throws Exception {
+        MyClawDesktopFrame frame = frameWith("claude", request ->
+                new AiResponse("", new BackendId("Claude CLI"), Duration.ZERO)
+        );
+        try {
+            onEdt(() -> {
+                for (String name : new String[] {
+                        "sendPrompt",
+                        "clearTranscript",
+                        "detachTranscript",
+                        "copyTranscript",
+                        "focusPrompt",
+                        "keyboardShortcuts",
+                        "about",
+                        "zoomIn",
+                        "zoomOut",
+                        "zoomReset"
+                }) {
+                    Action action = frame.actionForTest(name);
+                    assertNotNull(action);
+                    assertNotNull(action.getValue(Action.NAME));
+                }
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
+    void keyboardMappingsResolveToSharedActions() throws Exception {
+        MyClawDesktopFrame frame = frameWith("claude", request ->
+                new AiResponse("", new BackendId("Claude CLI"), Duration.ZERO)
+        );
+        try {
+            onEdt(() -> {
+                assertEquals("sendPrompt", frame.keyBindingForTest(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK)));
+                assertEquals("detachTranscript", frame.keyBindingForTest(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.CTRL_DOWN_MASK)));
+                assertEquals("focusPrompt", frame.keyBindingForTest(KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.CTRL_DOWN_MASK)));
+                assertEquals("copyTranscript", frame.keyBindingForTest(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)));
+                assertEquals("keyboardShortcuts", frame.keyBindingForTest(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0)));
+                assertEquals("zoomIn", frame.keyBindingForTest(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, InputEvent.CTRL_DOWN_MASK)));
+                assertEquals("zoomOut", frame.keyBindingForTest(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, InputEvent.CTRL_DOWN_MASK)));
+                assertEquals("zoomReset", frame.keyBindingForTest(KeyStroke.getKeyStroke(KeyEvent.VK_0, InputEvent.CTRL_DOWN_MASK)));
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
+    void actionEnabledStateFollowsRequestState() throws Exception {
+        BlockingBackend backend = new BlockingBackend("response\n");
+        MyClawDesktopFrame frame = frameWith("claude", backend);
+        try {
+            onEdt(() -> {
+                assertFalse(frame.actionForTest("sendPrompt").isEnabled());
+                assertTrue(frame.actionForTest("clearTranscript").isEnabled());
+                frame.setPromptText("hello");
+                assertTrue(frame.actionForTest("sendPrompt").isEnabled());
+                frame.submitForTest();
+            });
+            assertTrue(backend.started.await(5, TimeUnit.SECONDS));
+
+            onEdt(() -> {
+                assertFalse(frame.actionForTest("sendPrompt").isEnabled());
+                assertFalse(frame.actionForTest("clearTranscript").isEnabled());
+            });
+
+            backend.finish.countDown();
+            waitForStatus(frame, "Ready");
+
+            onEdt(() -> {
+                assertFalse(frame.actionForTest("sendPrompt").isEnabled());
+                assertTrue(frame.actionForTest("clearTranscript").isEnabled());
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
+    void detachActionTogglesDetachAndReattach() throws Exception {
+        MyClawDesktopFrame frame = frameWith("claude", request ->
+                new AiResponse("", new BackendId("Claude CLI"), Duration.ZERO)
+        );
+        try {
+            onEdt(() -> {
+                frame.actionForTest("detachTranscript").actionPerformed(null);
+                assertTrue(frame.transcriptDetached());
+                assertEquals("Reattach Transcript", frame.actionForTest("detachTranscript").getValue(Action.NAME));
+                assertEquals("Reattach transcript", frame.accessibleNameForTest("reattach"));
+
+                frame.actionForTest("detachTranscript").actionPerformed(null);
+                assertFalse(frame.transcriptDetached());
+                assertEquals("Detach Transcript", frame.actionForTest("detachTranscript").getValue(Action.NAME));
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
+    void focusPromptActionRequestsPromptFocus() throws Exception {
+        MyClawDesktopFrame frame = frameWith("claude", request ->
+                new AiResponse("", new BackendId("Claude CLI"), Duration.ZERO)
+        );
+        try {
+            onEdt(() -> {
+                frame.setVisible(true);
+                frame.actionForTest("focusPrompt").actionPerformed(null);
+            });
+            waitForPromptFocus(frame);
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
+    void copyTranscriptCopiesPlainTextThroughClipboardWriter() throws Exception {
+        AtomicReference<String> copied = new AtomicReference<>();
+        MyClawDesktopFrame frame = frameWithClipboard("claude", request ->
+                new AiResponse("reply\n", new BackendId("Claude CLI"), Duration.ZERO),
+                copied::set
+        );
+        try {
+            onEdt(() -> {
+                frame.selectBackend("claude");
+                frame.setPromptText("hello");
+                frame.submitForTest();
+            });
+            waitForStatus(frame, "Ready");
+
+            onEdt(() -> frame.actionForTest("copyTranscript").actionPerformed(null));
+
+            assertEquals(frame.transcriptText(), copied.get());
+            assertEquals("Transcript copied", onEdtReturning(frame::statusText));
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
+    void clearMenuAndButtonUseSharedAction() throws Exception {
+        MyClawDesktopFrame frame = frameWith("claude", request ->
+                new AiResponse("reply\n", new BackendId("Claude CLI"), Duration.ZERO)
+        );
+        try {
+            onEdt(() -> {
+                assertSame(frame.actionForTest("clearTranscript"), frame.menuActionForTest("Edit", "Clear Transcript"));
+                frame.selectBackend("claude");
+                frame.setPromptText("hello");
+                frame.submitForTest();
+            });
+            waitForStatus(frame, "Ready");
+
+            onEdt(() -> {
+                frame.menuActionForTest("Edit", "Clear Transcript").actionPerformed(null);
+                assertEquals("", frame.transcriptText());
+                assertEquals("Transcript cleared", frame.statusText());
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
+    void menuItemsReuseIntendedActions() throws Exception {
+        MyClawDesktopFrame frame = frameWith("claude", request ->
+                new AiResponse("", new BackendId("Claude CLI"), Duration.ZERO)
+        );
+        try {
+            onEdt(() -> {
+                assertSame(frame.actionForTest("copyTranscript"), frame.menuActionForTest("Edit", "Copy Transcript"));
+                assertSame(frame.actionForTest("focusPrompt"), frame.menuActionForTest("Edit", "Focus Prompt"));
+                assertSame(frame.actionForTest("detachTranscript"), frame.menuActionForTest("View", "Detach Transcript"));
+                assertSame(frame.actionForTest("keyboardShortcuts"), frame.menuActionForTest("Help", "Keyboard Shortcuts"));
+                assertSame(frame.actionForTest("about"), frame.menuActionForTest("Help", "About myclaw"));
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
+    void majorControlsHaveAccessibleNames() throws Exception {
+        MyClawDesktopFrame frame = frameWith("claude", request ->
+                new AiResponse("", new BackendId("Claude CLI"), Duration.ZERO)
+        );
+        try {
+            onEdt(() -> {
+                assertEquals("Backend selector", frame.accessibleNameForTest("backend"));
+                assertEquals("Font selector", frame.accessibleNameForTest("font"));
+                assertEquals("Text size selector", frame.accessibleNameForTest("size"));
+                assertEquals("Transcript", frame.accessibleNameForTest("transcript"));
+                assertEquals("Prompt editor", frame.accessibleNameForTest("prompt"));
+                assertEquals("Send", frame.accessibleNameForTest("send"));
+                assertEquals("Clear transcript", frame.accessibleNameForTest("clear"));
+                assertEquals("Status", frame.accessibleNameForTest("status"));
+                assertEquals("Request progress", frame.accessibleNameForTest("progress"));
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
+    void helpTextContainsRequiredShortcuts() throws Exception {
+        MyClawDesktopFrame frame = frameWith("claude", request ->
+                new AiResponse("", new BackendId("Claude CLI"), Duration.ZERO)
+        );
+        try {
+            onEdt(() -> {
+                String help = frame.helpTextForTest();
+                assertTrue(help.contains("Ctrl+Enter"));
+                assertTrue(help.contains("Enter twice"));
+                assertTrue(help.contains("Ctrl+D"));
+                assertTrue(help.contains("Ctrl+L"));
+                assertTrue(help.contains("Ctrl+Shift+C"));
+                assertTrue(help.contains("Ctrl++"));
+                assertTrue(help.contains("Ctrl+-"));
+                assertTrue(help.contains("Ctrl+0"));
+                assertTrue(help.contains("F1"));
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
     void acceptedRequestShowsWorkingStateAndPreventsDuplicateSubmission() throws Exception {
         BlockingBackend backend = new BlockingBackend("response\n");
         MyClawDesktopFrame frame = frameWith("claude", backend);
@@ -256,13 +492,22 @@ final class MyClawDesktopFrameTest {
     }
 
     private MyClawDesktopFrame frameWith(String backendName, AiBackend backend) throws Exception {
+        return frameWithClipboard(backendName, backend, text -> {
+        });
+    }
+
+    private MyClawDesktopFrame frameWithClipboard(
+            String backendName,
+            AiBackend backend,
+            MyClawDesktopFrame.ClipboardWriter clipboardWriter
+    ) throws Exception {
         Clock clock = Clock.fixed(Instant.parse("2026-07-11T21:00:00.123Z"), ZoneOffset.UTC);
         PromptService service = new PromptService(
                 Map.of(backendName, backend),
                 new TranscriptWriter(tempDir, clock),
                 clock
         );
-        return onEdtReturning(() -> new MyClawDesktopFrame(service));
+        return onEdtReturning(() -> new MyClawDesktopFrame(service, new ThemeManager(), clipboardWriter));
     }
 
     private static void waitForStatus(MyClawDesktopFrame frame, String status) throws Exception {
@@ -274,6 +519,17 @@ final class MyClawDesktopFrameTest {
             Thread.sleep(25);
         }
         assertEquals(status, onEdtReturning(frame::statusText));
+    }
+
+    private static void waitForPromptFocus(MyClawDesktopFrame frame) throws Exception {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (System.nanoTime() < deadline) {
+            if (onEdtReturning(frame::promptFocusOwnerForTest)) {
+                return;
+            }
+            Thread.sleep(25);
+        }
+        assertTrue(onEdtReturning(frame::promptFocusOwnerForTest));
     }
 
     private static void dispose(MyClawDesktopFrame frame) throws Exception {
