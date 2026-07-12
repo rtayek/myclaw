@@ -76,6 +76,34 @@ ollama run glm4:9b
 
 Prompt text is sent to Ollama over standard input. It does not call a hosted API. The model must already be installed.
 
+## Desktop
+
+Launch the Swing desktop client:
+
+```sh
+./gradlew runDesktop
+```
+
+Or from the shell launcher:
+
+```sh
+./scripts/myclaw-desktop
+```
+
+The desktop client provides:
+
+```text
+Backend selector: Claude or GLM
+Multiline prompt input
+Ctrl+Enter to send
+Scrollable, copyable prompt/response display
+Clear button for the on-screen display only
+```
+
+Each desktop request is still a one-shot backend call. The visible display can accumulate turns, but previous turns are not sent back as conversation history yet. Durable Markdown transcripts are still written under `runs/`.
+
+Voice input is handled by the operating system. On Windows, focus the prompt area and use `Win+H`; the recognized text is sent as ordinary prompt text.
+
 ## Transcripts
 
 Each invocation writes one Markdown transcript under `runs/`:

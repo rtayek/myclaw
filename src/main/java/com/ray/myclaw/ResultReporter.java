@@ -12,8 +12,8 @@ final class ResultReporter {
         this.err = Objects.requireNonNull(err, "err");
     }
 
-    void reportSuccess(AiResponse response) {
-        out.print(response.text());
+    void reportSuccess(PromptResult result) {
+        out.print(result.response());
     }
 
     void reportFailure(AiBackendException exception) {

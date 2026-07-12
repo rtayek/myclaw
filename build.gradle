@@ -22,6 +22,13 @@ tasks.named('run') {
     standardInput = System.in
 }
 
+tasks.register('runDesktop', JavaExec) {
+    description = 'Launches the Swing desktop client.'
+    group = 'application'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.ray.myclaw.DesktopMain'
+}
+
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:6.0.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:6.0.0'

@@ -32,15 +32,11 @@ final class HarnessMainApplicationTest {
         ClaudeCliBackend backend = new ClaudeCliBackend(request -> result, Duration.ofSeconds(5));
         ByteArrayOutputStream stdout = new ByteArrayOutputStream();
         ByteArrayOutputStream capturedStderr = new ByteArrayOutputStream();
-        HarnessMainApplication application = new HarnessMainApplication(
+        HarnessMainApplication application = applicationWithBackends(
                 Map.of("claude", backend),
-                new TranscriptWriter(tempDir, Clock.fixed(Instant.parse("2026-07-11T21:00:00.123Z"), ZoneOffset.UTC)),
-                Clock.fixed(Instant.parse("2026-07-11T21:00:00.123Z"), ZoneOffset.UTC),
-                new ResultReporter(
-                        new PrintStream(stdout, true, StandardCharsets.UTF_8),
-                        new PrintStream(capturedStderr, true, StandardCharsets.UTF_8)
-                ),
-                new ByteArrayInputStream("unused".getBytes(StandardCharsets.UTF_8))
+                stdout,
+                capturedStderr,
+                "unused"
         );
 
         int exitCode = application.run(new String[]{"claude", prompt});
@@ -311,8 +307,8 @@ final class HarnessMainApplicationTest {
     private TestApplication applicationWith(CapturingBackend backend, String standardInput) {
         return new TestApplication(
                 Map.of("fake", backend),
-                new TranscriptWriter(tempDir, Clock.fixed(Instant.parse("2026-07-11T21:00:00.123Z"), ZoneOffset.UTC)),
-                Clock.fixed(Instant.parse("2026-07-11T21:00:00.123Z"), ZoneOffset.UTC),
+                fixedTranscriptWriter(),
+                fixedClock(),
                 new ResultReporter(
                         new PrintStream(backend.stdout, true, StandardCharsets.UTF_8),
                         new PrintStream(backend.stderr, true, StandardCharsets.UTF_8)
@@ -379,9 +375,7 @@ final class HarnessMainApplicationTest {
             String standardInput
     ) {
         return new HarnessMainApplication(
-                backends,
-                new TranscriptWriter(tempDir, Clock.fixed(Instant.parse("2026-07-11T21:00:00.123Z"), ZoneOffset.UTC)),
-                Clock.fixed(Instant.parse("2026-07-11T21:00:00.123Z"), ZoneOffset.UTC),
+                new PromptService(backends, fixedTranscriptWriter(), fixedClock()),
                 new ResultReporter(
                         new PrintStream(stdout, true, StandardCharsets.UTF_8),
                         new PrintStream(stderr, true, StandardCharsets.UTF_8)
@@ -402,7 +396,8 @@ final class HarnessMainApplicationTest {
                 ByteArrayInputStream input
         ) {
             this.backend = (CapturingBackend) backends.values().iterator().next();
-            this.application = new com.ray.myclaw.HarnessMainApplication(backends, transcriptWriter, clock, reporter, input);
+            this.application = new com.ray.myclaw.HarnessMainApplication(
+                    new PromptService(backends, transcriptWriter, clock), reporter, input);
         }
 
         private int run(String[] args) {
@@ -416,5 +411,13 @@ final class HarnessMainApplicationTest {
         private String stderr() {
             return backend.stderr.toString(StandardCharsets.UTF_8);
         }
+    }
+
+    private TranscriptWriter fixedTranscriptWriter() {
+        return new TranscriptWriter(tempDir, fixedClock());
+    }
+
+    private static Clock fixedClock() {
+        return Clock.fixed(Instant.parse("2026-07-11T21:00:00.123Z"), ZoneOffset.UTC);
     }
 }
