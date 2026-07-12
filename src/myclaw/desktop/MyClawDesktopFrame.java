@@ -7,6 +7,9 @@ import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,10 +21,13 @@ import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButtonMenuItem;
@@ -29,6 +35,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -50,11 +58,16 @@ final class MyClawDesktopFrame extends JFrame {
     private final JComboBox<String> fontFamilyCombo;
     private final JComboBox<Integer> fontSizeCombo;
     private final TranscriptView transcriptView;
+    private final JScrollPane transcriptScroll;
     private final JTextArea promptArea;
     private final JButton sendButton;
     private final JButton clearButton;
     private final JLabel statusLabel;
     private final JProgressBar progressBar;
+    private JSplitPane splitPane;
+    private JMenuItem detachMenuItem;
+    private JDialog transcriptDialog;
+    private int savedDividerLocation;
     private boolean requestActive;
 
     MyClawDesktopFrame(PromptService promptService) {
@@ -69,6 +82,7 @@ final class MyClawDesktopFrame extends JFrame {
         this.fontFamilyCombo = new JComboBox<>(availableFontFamilies().toArray(String[]::new));
         this.fontSizeCombo = new JComboBox<>(FONT_SIZES.toArray(Integer[]::new));
         this.transcriptView = new TranscriptView();
+        this.transcriptScroll = new JScrollPane(transcriptView.component());
         this.promptArea = new JTextArea(6, 60);
         this.sendButton = new JButton("Send");
         this.clearButton = new JButton("Clear");
@@ -84,7 +98,16 @@ final class MyClawDesktopFrame extends JFrame {
         pack();
         setLocationRelativeTo(null);
         wireActions();
+        configureZoom();
         showReady();
+    }
+
+    @Override
+    public void dispose() {
+        if (transcriptDialog != null) {
+            transcriptDialog.dispose();
+        }
+        super.dispose();
     }
 
     private JMenuBar menuBar(ThemeManager themeManager) {
@@ -98,8 +121,19 @@ final class MyClawDesktopFrame extends JFrame {
             themeMenu.add(item);
         }
 
+        detachMenuItem = new JMenuItem("Detach Transcript");
+        detachMenuItem.addActionListener(event -> {
+            if (transcriptDialog == null) {
+                detachTranscript();
+            } else {
+                reattachTranscript();
+            }
+        });
+
         JMenu viewMenu = new JMenu("View");
         viewMenu.add(themeMenu);
+        viewMenu.addSeparator();
+        viewMenu.add(detachMenuItem);
 
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(viewMenu);
@@ -156,7 +190,6 @@ final class MyClawDesktopFrame extends JFrame {
         rightControls.add(clearButton, BorderLayout.EAST);
         topPanel.add(rightControls, BorderLayout.EAST);
 
-        JScrollPane transcriptScroll = new JScrollPane(transcriptView.component());
         transcriptScroll.setBorder(BorderFactory.createTitledBorder("Transcript"));
 
         JScrollPane promptScroll = new JScrollPane(promptArea);
@@ -164,7 +197,7 @@ final class MyClawDesktopFrame extends JFrame {
         promptScroll.setMinimumSize(new Dimension(200, 150));
         promptScroll.setPreferredSize(new Dimension(900, 210));
 
-        JSplitPane splitPane = new JSplitPane(
+        splitPane = new JSplitPane(
                 JSplitPane.VERTICAL_SPLIT,
                 transcriptScroll,
                 promptScroll
@@ -239,6 +272,142 @@ final class MyClawDesktopFrame extends JFrame {
         } else {
             promptArea.replaceSelection("\n");
         }
+    }
+
+    private void configureZoom() {
+        installZoomWheelListener(transcriptView.component());
+        installZoomWheelListener(promptArea);
+
+        bindZoomKeys(transcriptView.component());
+        bindZoomKeys(promptArea);
+    }
+
+    private void installZoomWheelListener(JComponent component) {
+        component.addMouseWheelListener(event -> {
+            if ((event.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) != 0) {
+                event.consume();
+                if (event.getWheelRotation() < 0) {
+                    zoomIn();
+                } else if (event.getWheelRotation() > 0) {
+                    zoomOut();
+                }
+                return;
+            }
+
+            // Registering a MouseWheelListener directly on a component stops Swing from
+            // auto-forwarding unconsumed wheel events to the ancestor JScrollPane, so plain
+            // (non-zoom) scrolling has to be forwarded explicitly.
+            JScrollPane ancestorScrollPane =
+                    (JScrollPane) SwingUtilities.getAncestorOfClass(JScrollPane.class, component);
+            if (ancestorScrollPane != null) {
+                ancestorScrollPane.dispatchEvent(event);
+            }
+        });
+    }
+
+    private void bindZoomKeys(JComponent component) {
+        var inputMap = component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        var actionMap = component.getActionMap();
+
+        inputMap.put(KeyStroke.getKeyStroke("control EQUALS"), "zoomIn");
+        inputMap.put(KeyStroke.getKeyStroke("control PLUS"), "zoomIn");
+        inputMap.put(KeyStroke.getKeyStroke("control ADD"), "zoomIn");
+        inputMap.put(KeyStroke.getKeyStroke("control shift EQUALS"), "zoomIn");
+        inputMap.put(KeyStroke.getKeyStroke("control MINUS"), "zoomOut");
+        inputMap.put(KeyStroke.getKeyStroke("control SUBTRACT"), "zoomOut");
+        inputMap.put(KeyStroke.getKeyStroke("control 0"), "zoomReset");
+
+        actionMap.put("zoomIn", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                zoomIn();
+            }
+        });
+        actionMap.put("zoomOut", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                zoomOut();
+            }
+        });
+        actionMap.put("zoomReset", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                zoomReset();
+            }
+        });
+    }
+
+    void zoomIn() {
+        stepFontSize(1);
+    }
+
+    void zoomOut() {
+        stepFontSize(-1);
+    }
+
+    void zoomReset() {
+        fontSizeCombo.setSelectedItem(DEFAULT_FONT_SIZE);
+    }
+
+    private void stepFontSize(int direction) {
+        int currentIndex = FONT_SIZES.indexOf(fontSizeCombo.getSelectedItem());
+        if (currentIndex < 0) {
+            return;
+        }
+        int nextIndex = Math.max(0, Math.min(FONT_SIZES.size() - 1, currentIndex + direction));
+        if (nextIndex != currentIndex) {
+            fontSizeCombo.setSelectedItem(FONT_SIZES.get(nextIndex));
+        }
+    }
+
+    void detachTranscript() {
+        if (transcriptDialog != null) {
+            return;
+        }
+
+        savedDividerLocation = splitPane.getDividerLocation();
+        JPanel placeholder = new JPanel(new BorderLayout(8, 8));
+        placeholder.setBorder(BorderFactory.createTitledBorder("Transcript"));
+        JLabel placeholderLabel = new JLabel("Transcript detached.", SwingConstants.CENTER);
+        JButton reattachButton = new JButton("Reattach");
+        reattachButton.addActionListener(event -> reattachTranscript());
+        placeholder.add(placeholderLabel, BorderLayout.CENTER);
+        placeholder.add(reattachButton, BorderLayout.SOUTH);
+        splitPane.setTopComponent(placeholder);
+        splitPane.setDividerLocation(savedDividerLocation);
+
+        transcriptDialog = new JDialog(this, "myclaw — Transcript", false);
+        transcriptDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        transcriptDialog.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent event) {
+                reattachTranscript();
+            }
+        });
+        transcriptDialog.setContentPane(transcriptScroll);
+        transcriptDialog.setSize(700, 600);
+        transcriptDialog.setLocationRelativeTo(this);
+        transcriptDialog.setVisible(true);
+
+        detachMenuItem.setText("Reattach Transcript");
+    }
+
+    void reattachTranscript() {
+        if (transcriptDialog == null) {
+            return;
+        }
+
+        splitPane.setTopComponent(transcriptScroll);
+        splitPane.setDividerLocation(savedDividerLocation);
+
+        transcriptDialog.dispose();
+        transcriptDialog = null;
+
+        detachMenuItem.setText("Detach Transcript");
+    }
+
+    boolean transcriptDetached() {
+        return transcriptDialog != null;
     }
 
     private void sendPrompt() {

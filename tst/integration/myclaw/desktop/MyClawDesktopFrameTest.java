@@ -67,6 +67,83 @@ final class MyClawDesktopFrameTest {
     }
 
     @Test
+    void zoomInAndOutStepThroughFontSizesAndResetPreservesFamily() throws Exception {
+        MyClawDesktopFrame frame = frameWith("claude", request ->
+                new AiResponse("", new BackendId("Claude CLI"), Duration.ZERO)
+        );
+        try {
+            onEdt(() -> {
+                frame.selectFontFamilyForTest(Font.SERIF);
+                assertEquals(18, frame.promptFontForTest().getSize());
+
+                frame.zoomIn();
+                assertEquals(20, frame.promptFontForTest().getSize());
+
+                frame.zoomOut();
+                frame.zoomOut();
+                assertEquals(16, frame.promptFontForTest().getSize());
+
+                frame.zoomReset();
+                assertEquals(18, frame.promptFontForTest().getSize());
+                assertEquals(Font.SERIF, frame.promptFontForTest().getFamily());
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
+    void zoomStopsCleanlyAtConfiguredBounds() throws Exception {
+        MyClawDesktopFrame frame = frameWith("claude", request ->
+                new AiResponse("", new BackendId("Claude CLI"), Duration.ZERO)
+        );
+        try {
+            onEdt(() -> {
+                for (int i = 0; i < 20; i++) {
+                    frame.zoomOut();
+                }
+                assertEquals(14, frame.promptFontForTest().getSize());
+
+                for (int i = 0; i < 20; i++) {
+                    frame.zoomIn();
+                }
+                assertEquals(48, frame.promptFontForTest().getSize());
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
+    void detachAndReattachTranscriptPreservesContent() throws Exception {
+        MyClawDesktopFrame frame = frameWith("claude", request ->
+                new AiResponse("reply\n", new BackendId("Claude CLI"), Duration.ZERO)
+        );
+        try {
+            onEdt(() -> {
+                frame.selectBackend("claude");
+                frame.setPromptText("hello");
+                frame.submitForTest();
+            });
+            waitForStatus(frame, "Ready");
+
+            onEdt(() -> {
+                assertFalse(frame.transcriptDetached());
+
+                frame.detachTranscript();
+                assertTrue(frame.transcriptDetached());
+                assertTrue(frame.transcriptText().contains("hello"));
+
+                frame.reattachTranscript();
+                assertFalse(frame.transcriptDetached());
+                assertTrue(frame.transcriptText().contains("hello"));
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
     void acceptedRequestShowsWorkingStateAndPreventsDuplicateSubmission() throws Exception {
         BlockingBackend backend = new BlockingBackend("response\n");
         MyClawDesktopFrame frame = frameWith("claude", backend);
