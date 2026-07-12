@@ -1,4 +1,4 @@
-package myclaw.performance;
+package myclaw.backend;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -6,32 +6,33 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 
 import myclaw.backend.AiRequest;
-import myclaw.backend.OllamaCliBackend;
+import myclaw.backend.ClaudeCliBackend;
 import myclaw.execution.CommandRunner;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Times the Ollama CLI backend. The warmup run loads the model into RAM,
- * so the timed runs measure warm cycles (CLI spawn + inference on a
- * resident model). If run 1 of the warmups is huge, that was model load.
+ * Times the full cycle for the Claude CLI backend: process spawn (startup)
+ * plus round trip. Each ask() spawns a fresh `claude -p`, so startup cost
+ * is included in every measurement - that is the current architecture.
  *
  * Run with: ./gradlew latencyTest
- * Requires Ollama on PATH and the model installed.
+ * Requires `claude` on PATH. Results print to the test log.
  */
-final class OllamaLatencyTest {
+final class ClaudeLatencyTest {
 
-    private static final String MODEL = "glm4:9b";   // matches ApplicationBackends
     private static final int WARMUP_RUNS = 1;
     private static final int TIMED_RUNS = 5;
-    private static final Duration MAX_AVG = Duration.ofSeconds(30);
+    // Alarm threshold: fail the test if average exceeds this.
+    // Tune after your first few runs establish a baseline.
+    private static final Duration MAX_AVG = Duration.ofSeconds(15);
 
     @Tag("latency")
     @Test
-    void warmRoundTripStaysUnderThreshold() {
-        OllamaCliBackend backend = new OllamaCliBackend(new CommandRunner(), Duration.ofMinutes(2), MODEL);
+    void coldRoundTripStaysUnderThreshold() {
+        ClaudeCliBackend backend = new ClaudeCliBackend(new CommandRunner(), Duration.ofSeconds(60));
         LatencyStats stats = LatencyStats.measure(
-                "ollama " + MODEL + " warm (spawn + inference)",
+                "claude cold (spawn + round trip)",
                 WARMUP_RUNS,
                 TIMED_RUNS,
                 () -> backend.ask(AiRequest.of("Reply with exactly: OK")));

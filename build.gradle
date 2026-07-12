@@ -19,7 +19,22 @@ sourceSets {
         java.srcDirs = ['src']
     }
     test {
-        java.srcDirs = ['tst']
+        java.srcDirs = ['tst/unit']
+    }
+    integrationTest {
+        java.srcDirs = ['tst/integration']
+        compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+        runtimeClasspath += output + compileClasspath
+    }
+    smokeTest {
+        java.srcDirs = ['tst/smoke']
+        compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+        runtimeClasspath += output + compileClasspath
+    }
+    slowTest {
+        java.srcDirs = ['tst/slow']
+        compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+        runtimeClasspath += output + compileClasspath
     }
 }
 
@@ -57,14 +72,21 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:6.0.0'
 }
 
+configurations {
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+    smokeTestImplementation.extendsFrom testImplementation
+    smokeTestRuntimeOnly.extendsFrom testRuntimeOnly
+    slowTestImplementation.extendsFrom testImplementation
+    slowTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
 
 tasks.named('test') {
-    useJUnitPlatform {
-        excludeTags 'claudeSmoke', 'ollamaSmoke', 'latency'
-    }
+    useJUnitPlatform()
 }
 
 tasks.withType(Test).configureEach {
@@ -74,11 +96,20 @@ tasks.withType(Test).configureEach {
     reports.html.outputLocation = layout.buildDirectory.dir("reports/tests/${name}-${runStamp.get()}")
 }
 
+tasks.register('integrationTest', Test) {
+    description = 'Runs integration tests.'
+    group = 'verification'
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    useJUnitPlatform()
+    shouldRunAfter test
+}
+
 tasks.register('claudeSmokeTest', Test) {
     description = 'Runs the explicitly enabled Claude CLI smoke test.'
     group = 'verification'
-    testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath
+    testClassesDirs = sourceSets.smokeTest.output.classesDirs
+    classpath = sourceSets.smokeTest.runtimeClasspath
     useJUnitPlatform {
         includeTags 'claudeSmoke'
     }
@@ -88,8 +119,8 @@ tasks.register('claudeSmokeTest', Test) {
 tasks.register('ollamaSmokeTest', Test) {
     description = 'Runs the explicitly enabled Ollama glm4:9b smoke test.'
     group = 'verification'
-    testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath
+    testClassesDirs = sourceSets.smokeTest.output.classesDirs
+    classpath = sourceSets.smokeTest.runtimeClasspath
     useJUnitPlatform {
         includeTags 'ollamaSmoke'
     }
@@ -99,8 +130,8 @@ tasks.register('ollamaSmokeTest', Test) {
 tasks.register('latencyTest', Test) {
     description = 'Times backend round trips and alarms if too slow.'
     group = 'verification'
-    testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath
+    testClassesDirs = sourceSets.slowTest.output.classesDirs
+    classpath = sourceSets.slowTest.runtimeClasspath
     useJUnitPlatform {
         includeTags 'latency'
     }

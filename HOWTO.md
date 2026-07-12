@@ -7,6 +7,7 @@ Short command reference for myclaw.
 ```sh
 ./gradlew build
 ./gradlew test
+./gradlew integrationTest
 ```
 
 Explicit real-backend checks:
@@ -14,6 +15,7 @@ Explicit real-backend checks:
 ```sh
 ./gradlew claudeSmokeTest
 ./gradlew ollamaSmokeTest
+./gradlew latencyTest
 ```
 
 ## CLI
