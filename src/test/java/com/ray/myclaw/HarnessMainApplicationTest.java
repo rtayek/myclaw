@@ -13,6 +13,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -152,6 +153,151 @@ final class HarnessMainApplicationTest {
         assertEquals(0, Files.list(tempDir).count());
     }
 
+    @Test
+    void applicationSelectsGlmBackendAndWritesOllamaTranscript() throws Exception {
+        CapturingExecutor executor = new CapturingExecutor(
+                new CommandResult(0, "GLM_OK\n", "", Duration.ofMillis(25), false));
+        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+        HarnessMainApplication application = applicationWithBackends(
+                Map.of("glm", new OllamaCliBackend(executor, Duration.ofMinutes(2), "glm4:9b")),
+                stdout,
+                new ByteArrayOutputStream(),
+                "unused"
+        );
+
+        int exitCode = application.run(new String[]{"glm", "Say exactly: GLM_OK"});
+
+        assertEquals(0, exitCode);
+        assertEquals("GLM_OK\n", stdout.toString(StandardCharsets.UTF_8));
+        assertEquals(List.of("ollama", "run", "glm4:9b"), executor.request.command());
+        assertEquals("Say exactly: GLM_OK", executor.request.standardInput());
+
+        String transcript = latestTranscript();
+        assertTrue(transcript.contains("Backend: Ollama glm4:9b"));
+        assertTrue(transcript.contains("""
+                ## Command
+
+                ```
+                ollama
+                run
+                glm4:9b
+                ```
+                """));
+    }
+
+    @Test
+    void applicationStillSelectsClaudeBackend() {
+        CapturingExecutor claudeExecutor = new CapturingExecutor(
+                new CommandResult(0, "CLAUDE_OK\n", "", Duration.ofMillis(10), false));
+        CapturingExecutor glmExecutor = new CapturingExecutor(
+                new CommandResult(0, "GLM_OK\n", "", Duration.ofMillis(10), false));
+        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+        HarnessMainApplication application = applicationWithBackends(
+                Map.of(
+                        "claude", new ClaudeCliBackend(claudeExecutor, Duration.ofSeconds(5)),
+                        "glm", new OllamaCliBackend(glmExecutor, Duration.ofMinutes(2), "glm4:9b")
+                ),
+                stdout,
+                new ByteArrayOutputStream(),
+                "unused"
+        );
+
+        int exitCode = application.run(new String[]{"claude", "Say exactly: CLAUDE_OK"});
+
+        assertEquals(0, exitCode);
+        assertEquals("CLAUDE_OK\n", stdout.toString(StandardCharsets.UTF_8));
+        assertEquals(List.of("claude", "-p", "Say exactly: CLAUDE_OK"), claudeExecutor.request.command());
+        assertNull(glmExecutor.request);
+    }
+
+    @Test
+    void unknownBackendReturnsUsageExitStatus() {
+        ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+        HarnessMainApplication application = applicationWithBackends(
+                Map.of("glm", new OllamaCliBackend(request -> {
+                    throw new AssertionError("backend should not run");
+                }, Duration.ofMinutes(2), "glm4:9b")),
+                new ByteArrayOutputStream(),
+                stderr,
+                "unused"
+        );
+
+        int exitCode = application.run(new String[]{"missing", "hello"});
+
+        assertEquals(2, exitCode);
+        assertTrue(stderr.toString(StandardCharsets.UTF_8).contains("Usage:"));
+    }
+
+    @Test
+    void failedGlmTranscriptPreservesAttemptedCommandAndDoesNotDuplicateStderr() throws Exception {
+        String stderr = "ollama error";
+        CapturingExecutor executor = new CapturingExecutor(
+                new CommandResult(2, "", stderr, Duration.ofMillis(30), false));
+        ByteArrayOutputStream capturedStderr = new ByteArrayOutputStream();
+        HarnessMainApplication application = applicationWithBackends(
+                Map.of("glm", new OllamaCliBackend(executor, Duration.ofMinutes(2), "glm4:9b")),
+                new ByteArrayOutputStream(),
+                capturedStderr,
+                "unused"
+        );
+
+        int exitCode = application.run(new String[]{"glm", "Say exactly: GLM_FAIL"});
+
+        assertEquals(1, exitCode);
+        assertEquals(1, occurrencesOf(capturedStderr.toString(StandardCharsets.UTF_8), stderr));
+
+        String transcript = latestTranscript();
+        assertTrue(transcript.contains("Error: Ollama glm4:9b exited with status 2: " + stderr));
+        assertTrue(transcript.contains("""
+                ## Command
+
+                ```
+                ollama
+                run
+                glm4:9b
+                ```
+                """));
+    }
+
+    @Test
+    void timedOutGlmTranscriptPreservesAttemptedCommand() throws Exception {
+        CapturingExecutor executor = new CapturingExecutor(
+                new CommandResult(-1, "partial", "", Duration.ofMinutes(2), true));
+        HarnessMainApplication application = applicationWithBackends(
+                Map.of("glm", new OllamaCliBackend(executor, Duration.ofMinutes(2), "glm4:9b")),
+                new ByteArrayOutputStream(),
+                new ByteArrayOutputStream(),
+                "unused"
+        );
+
+        int exitCode = application.run(new String[]{"glm", "timeout prompt"});
+
+        assertEquals(1, exitCode);
+        String transcript = latestTranscript();
+        assertTrue(transcript.contains("Timed out: true"));
+        assertTrue(transcript.contains("ollama\nrun\nglm4:9b"));
+    }
+
+    @Test
+    void startupFailedGlmTranscriptPreservesAttemptedCommand() throws Exception {
+        CapturingExecutor executor = new CapturingExecutor(
+                new CommandExecutionException("Could not start command ollama"));
+        HarnessMainApplication application = applicationWithBackends(
+                Map.of("glm", new OllamaCliBackend(executor, Duration.ofMinutes(2), "glm4:9b")),
+                new ByteArrayOutputStream(),
+                new ByteArrayOutputStream(),
+                "unused"
+        );
+
+        int exitCode = application.run(new String[]{"glm", "startup failure prompt"});
+
+        assertEquals(1, exitCode);
+        String transcript = latestTranscript();
+        assertTrue(transcript.contains("Could not start Ollama glm4:9b"));
+        assertTrue(transcript.contains("ollama\nrun\nglm4:9b"));
+    }
+
+
     private static int occurrencesOf(String text, String pattern) {
         int count = 0;
         int index = 0;
@@ -176,8 +322,12 @@ final class HarnessMainApplicationTest {
     }
 
     private void assertLatestTranscriptContains(String expected) throws Exception {
+        assertTrue(latestTranscript().contains(expected));
+    }
+
+    private String latestTranscript() throws Exception {
         Path transcriptPath = Files.list(tempDir).findFirst().orElseThrow();
-        assertTrue(Files.readString(transcriptPath).contains(expected));
+        return Files.readString(transcriptPath);
     }
 
     private static final class CapturingBackend implements AiBackend {
@@ -195,6 +345,49 @@ final class HarnessMainApplicationTest {
             this.request = request;
             return response;
         }
+    }
+
+    private static final class CapturingExecutor implements CommandExecutor {
+        private final CommandResult result;
+        private final CommandExecutionException failure;
+        private CommandRequest request;
+
+        private CapturingExecutor(CommandResult result) {
+            this.result = result;
+            this.failure = null;
+        }
+
+        private CapturingExecutor(CommandExecutionException failure) {
+            this.result = null;
+            this.failure = failure;
+        }
+
+        @Override
+        public CommandResult run(CommandRequest request) {
+            this.request = request;
+            if (failure != null) {
+                throw failure;
+            }
+            return result;
+        }
+    }
+
+    private HarnessMainApplication applicationWithBackends(
+            Map<String, AiBackend> backends,
+            ByteArrayOutputStream stdout,
+            ByteArrayOutputStream stderr,
+            String standardInput
+    ) {
+        return new HarnessMainApplication(
+                backends,
+                new TranscriptWriter(tempDir, Clock.fixed(Instant.parse("2026-07-11T21:00:00.123Z"), ZoneOffset.UTC)),
+                Clock.fixed(Instant.parse("2026-07-11T21:00:00.123Z"), ZoneOffset.UTC),
+                new ResultReporter(
+                        new PrintStream(stdout, true, StandardCharsets.UTF_8),
+                        new PrintStream(stderr, true, StandardCharsets.UTF_8)
+                ),
+                new ByteArrayInputStream(standardInput.getBytes(StandardCharsets.UTF_8))
+        );
     }
 
     private static final class TestApplication {

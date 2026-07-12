@@ -3,12 +3,12 @@ package com.ray.myclaw;
 import java.util.List;
 import java.util.Objects;
 
-record ClaudeCliRun(
+record CommandBackedRun(
         AiResponse response,
         CommandResult commandResult,
         List<String> command
 ) {
-    ClaudeCliRun {
+    CommandBackedRun {
         Objects.requireNonNull(response, "response");
         Objects.requireNonNull(commandResult, "commandResult");
         command = List.copyOf(Objects.requireNonNull(command, "command"));

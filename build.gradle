@@ -48,11 +48,18 @@ sourceSets {
         compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
         runtimeClasspath += output + compileClasspath
     }
+    ollamaSmokeTest {
+        java.srcDir 'src/ollamaSmokeTest/java'
+        compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+        runtimeClasspath += output + compileClasspath
+    }
 }
 
 configurations {
     claudeSmokeTestImplementation.extendsFrom testImplementation
     claudeSmokeTestRuntimeOnly.extendsFrom testRuntimeOnly
+    ollamaSmokeTestImplementation.extendsFrom testImplementation
+    ollamaSmokeTestRuntimeOnly.extendsFrom testRuntimeOnly
 }
 
 tasks.register('claudeSmokeTest', Test) {
@@ -60,6 +67,15 @@ tasks.register('claudeSmokeTest', Test) {
     group = 'verification'
     testClassesDirs = sourceSets.claudeSmokeTest.output.classesDirs
     classpath = sourceSets.claudeSmokeTest.runtimeClasspath
+    useJUnitPlatform()
+    shouldRunAfter test
+}
+
+tasks.register('ollamaSmokeTest', Test) {
+    description = 'Runs the explicitly enabled Ollama glm4:9b smoke test.'
+    group = 'verification'
+    testClassesDirs = sourceSets.ollamaSmokeTest.output.classesDirs
+    classpath = sourceSets.ollamaSmokeTest.runtimeClasspath
     useJUnitPlatform()
     shouldRunAfter test
 }

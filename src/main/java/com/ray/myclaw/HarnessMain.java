@@ -12,13 +12,15 @@ import java.util.Map;
 
 public final class HarnessMain {
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(60);
+    private static final Duration OLLAMA_TIMEOUT = Duration.ofMinutes(2);
 
     private HarnessMain() {
     }
 
     public static void main(String[] args) {
         Map<String, AiBackend> backends = Map.of(
-                "claude", new ClaudeCliBackend(new CommandRunner(), DEFAULT_TIMEOUT)
+                "claude", new ClaudeCliBackend(new CommandRunner(), DEFAULT_TIMEOUT),
+                "glm", new OllamaCliBackend(new CommandRunner(), OLLAMA_TIMEOUT, "glm4:9b")
         );
         int exitCode = new HarnessMainApplication(
                 backends,
@@ -78,8 +80,8 @@ final class HarnessMainApplication {
         Instant started = clock.instant();
         String runId = TranscriptWriter.newRunId();
         try {
-            if (backend instanceof ClaudeCliBackend cliBackend) {
-                ClaudeCliRun run = cliBackend.askWithResult(request);
+            if (backend instanceof CommandBackedAiBackend commandBackedBackend) {
+                CommandBackedRun run = commandBackedBackend.askWithResult(request);
                 reporter.reportSuccess(run.response());
                 writeSuccessfulTranscript(runId, started, request, run.response(), run.command(), run.commandResult());
             } else {
@@ -147,8 +149,8 @@ final class HarnessMainApplication {
     }
 
     private static List<String> failedCommandFor(AiBackend backend, AiRequest request) {
-        if (backend instanceof ClaudeCliBackend) {
-            return ClaudeCliBackend.commandFor(request);
+        if (backend instanceof CommandBackedAiBackend commandBackedBackend) {
+            return commandBackedBackend.commandFor(request);
         }
         return List.of();
     }

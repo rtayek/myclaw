@@ -1,6 +1,6 @@
 # myclaw
 
-Small Java command-line AI harness for one-shot Claude CLI prompts.
+Small Java command-line AI harness for one-shot prompts through Claude CLI or a local Ollama model.
 
 ## Build
 
@@ -20,18 +20,24 @@ On Windows PowerShell:
 ./gradlew test
 ```
 
-## Claude Smoke Test
+## Smoke Tests
 
-This is separate from ordinary tests and requires `claude` to be available.
+These are separate from ordinary tests.
 
 ```sh
 ./gradlew claudeSmokeTest
 ```
 
+```sh
+./gradlew ollamaSmokeTest
+```
+
+`claudeSmokeTest` requires `claude` on PATH. `ollamaSmokeTest` requires Ollama on PATH and the `glm4:9b` model already installed.
+
 ## Run
 
 ```sh
-java -jar .gradle-build/libs/myclaw-0.1.0.jar claude "Say exactly: OK"
+java -jar .gradle-build/libs/myclaw.jar claude "Say exactly: OK"
 ```
 
 Expected output:
@@ -39,6 +45,36 @@ Expected output:
 ```text
 OK
 ```
+
+Run the local Ollama-backed GLM alias:
+
+```sh
+java -jar .gradle-build/libs/myclaw.jar glm "Say exactly: GLM_OK"
+```
+
+Expected output includes:
+
+```text
+GLM_OK
+```
+
+Read the prompt from standard input by passing `-`:
+
+```sh
+printf '%s\n' 'Say exactly: CLAUDE_PIPE_OK' | ./gradlew run --args='claude -'
+```
+
+```sh
+printf '%s\n' 'Say exactly: GLM_PIPE_OK' | ./gradlew run --args='glm -'
+```
+
+The `glm` backend runs locally through:
+
+```text
+ollama run glm4:9b
+```
+
+Prompt text is sent to Ollama over standard input. It does not call a hosted API. The model must already be installed.
 
 ## Transcripts
 
@@ -53,4 +89,6 @@ The transcript includes the prompt, response, command arguments, exit status, ti
 
 ## Platform Note
 
-The Java harness is platform-neutral, but `claude` must be available on the PATH of the environment that runs the jar. Claude has been verified from WSL; running the jar from Windows PowerShell will only work if `claude` is also available there.
+The Java harness is platform-neutral, but `claude` and `ollama` must be available on the PATH of the environment that runs the jar.
+
+Verified user environment for `glm4:9b`: Windows, 48 GB system RAM, NVIDIA RTX 4060 Ti with 8 GB VRAM, `glm4:9b` loaded 100% on GPU, active Ollama context 4096.

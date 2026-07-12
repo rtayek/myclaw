@@ -4,7 +4,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 
-final class ClaudeCliBackend implements AiBackend {
+final class ClaudeCliBackend implements CommandBackedAiBackend {
     static final BackendId BACKEND_ID = new BackendId("Claude CLI");
 
     private final CommandExecutor commandExecutor;
@@ -24,7 +24,8 @@ final class ClaudeCliBackend implements AiBackend {
         return false;
     }
 
-    ClaudeCliRun askWithResult(AiRequest request) {
+    @Override
+    public CommandBackedRun askWithResult(AiRequest request) {
         Objects.requireNonNull(request, "request");
         if (request.systemPrompt().isPresent() && !supportsSystemPrompt()) {
             throw new AiBackendUnsupportedRequestException(
@@ -52,7 +53,7 @@ final class ClaudeCliBackend implements AiBackend {
                 BACKEND_ID,
                 result.duration()
         );
-        return new ClaudeCliRun(response, result, command);
+        return new CommandBackedRun(response, result, command);
     }
 
     private static String nonzeroExitMessage(CommandResult result) {
@@ -63,7 +64,8 @@ final class ClaudeCliBackend implements AiBackend {
         return message;
     }
 
-    static List<String> commandFor(AiRequest request) {
+    @Override
+    public List<String> commandFor(AiRequest request) {
         Objects.requireNonNull(request, "request");
         return List.of("claude", "-p", request.prompt());
     }

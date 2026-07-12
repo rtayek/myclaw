@@ -19,8 +19,23 @@ if [ "$#" -eq 0 ]; then
 fi
 
 if [ "$#" -eq 1 ]; then
-    exec gradle run --args="claude \"$1\""
+    case "$1" in
+        claude|glm)
+            exec gradle run --args="$1 -"
+            ;;
+        *)
+            exec gradle run --args="claude \"$1\""
+            ;;
+    esac
 fi
 
-printf 'Usage: %s [prompt]\n' "$0" >&2
+if [ "$#" -eq 2 ]; then
+    case "$1" in
+        claude|glm)
+            exec gradle run --args="$1 \"$2\""
+            ;;
+    esac
+fi
+
+printf 'Usage: %s [claude|glm] [prompt]\n' "$0" >&2
 exit 2
