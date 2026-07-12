@@ -1,6 +1,7 @@
 package com.ray.myclaw;
 
 import java.awt.BorderLayout;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
@@ -15,11 +16,14 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.SwingWorker;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 final class MyClawDesktopFrame extends JFrame {
     private static final List<BackendChoice> BACKEND_CHOICES = List.of(
@@ -34,6 +38,8 @@ final class MyClawDesktopFrame extends JFrame {
     private final JButton sendButton;
     private final JButton clearButton;
     private final JLabel statusLabel;
+    private final JProgressBar progressBar;
+    private boolean requestActive;
 
     MyClawDesktopFrame(PromptService promptService) {
         super("myclaw");
@@ -44,13 +50,16 @@ final class MyClawDesktopFrame extends JFrame {
         this.sendButton = new JButton("Send");
         this.clearButton = new JButton("Clear");
         this.statusLabel = new JLabel("Ready");
+        this.progressBar = new JProgressBar();
 
         configureFrame();
         configureTextAreas();
+        configureProgressBar();
         setContentPane(contentPanel());
         pack();
         setLocationRelativeTo(null);
         wireActions();
+        showReady();
     }
 
     private void configureFrame() {
@@ -74,6 +83,12 @@ final class MyClawDesktopFrame extends JFrame {
         promptArea.setMargin(new Insets(12, 12, 12, 12));
     }
 
+    private void configureProgressBar() {
+        progressBar.setIndeterminate(false);
+        progressBar.setVisible(false);
+        progressBar.setStringPainted(false);
+    }
+
     private JPanel contentPanel() {
         JPanel panel = new JPanel(new BorderLayout(8, 8));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -92,7 +107,11 @@ final class MyClawDesktopFrame extends JFrame {
 
         JPanel bottomPanel = new JPanel(new BorderLayout(8, 8));
         bottomPanel.add(statusLabel, BorderLayout.CENTER);
-        bottomPanel.add(sendButton, BorderLayout.EAST);
+
+        JPanel actionPanel = new JPanel(new BorderLayout(8, 8));
+        actionPanel.add(progressBar, BorderLayout.CENTER);
+        actionPanel.add(sendButton, BorderLayout.EAST);
+        bottomPanel.add(actionPanel, BorderLayout.EAST);
 
         panel.add(topPanel, BorderLayout.NORTH);
         panel.add(splitPane, BorderLayout.CENTER);
@@ -106,6 +125,22 @@ final class MyClawDesktopFrame extends JFrame {
             transcriptArea.setText("");
             promptArea.requestFocusInWindow();
         });
+        promptArea.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent event) {
+                updateSendEnabled();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent event) {
+                updateSendEnabled();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent event) {
+                updateSendEnabled();
+            }
+        });
 
         promptArea.getInputMap().put(KeyStroke.getKeyStroke("control ENTER"), "sendPrompt");
         promptArea.getActionMap().put("sendPrompt", new javax.swing.AbstractAction() {
@@ -117,10 +152,14 @@ final class MyClawDesktopFrame extends JFrame {
     }
 
     private void sendPrompt() {
+        if (requestActive) {
+            return;
+        }
+
         String prompt = promptArea.getText();
         if (prompt.isBlank()) {
             appendBlock("Error", "Prompt is empty.");
-            statusLabel.setText("Ready");
+            showReady();
             promptArea.requestFocusInWindow();
             return;
         }
@@ -131,9 +170,9 @@ final class MyClawDesktopFrame extends JFrame {
             return;
         }
 
-        setBusy(true, "Waiting for " + backend.label() + "...");
         appendBlock("You", prompt);
         promptArea.setText("");
+        showWorking(backend);
 
         SwingWorker<PromptResult, Void> worker = new SwingWorker<>() {
             @Override
@@ -146,16 +185,18 @@ final class MyClawDesktopFrame extends JFrame {
                 try {
                     PromptResult result = get();
                     appendBlock(result.backendLabel(), result.response());
-                    statusLabel.setText("Ready");
+                    showSucceeded();
                 } catch (InterruptedException exception) {
                     Thread.currentThread().interrupt();
                     appendBlock(backend.label() + " error", "Interrupted while waiting for response.");
-                    statusLabel.setText("Interrupted");
+                    showFailed();
                 } catch (ExecutionException exception) {
                     appendBlock(backend.label() + " error", DesktopErrorFormatter.messageFor(exception.getCause()));
-                    statusLabel.setText("Failed");
+                    showFailed();
+                } catch (RuntimeException exception) {
+                    appendBlock(backend.label() + " error", DesktopErrorFormatter.messageFor(exception));
+                    showFailed();
                 } finally {
-                    setBusy(false, statusLabel.getText());
                     promptArea.requestFocusInWindow();
                 }
             }
@@ -163,11 +204,51 @@ final class MyClawDesktopFrame extends JFrame {
         worker.execute();
     }
 
-    private void setBusy(boolean busy, String status) {
-        sendButton.setEnabled(!busy);
-        backendCombo.setEnabled(!busy);
-        clearButton.setEnabled(!busy);
-        statusLabel.setText(status);
+    void showReady() {
+        requestActive = false;
+        statusLabel.setText("Ready");
+        progressBar.setIndeterminate(false);
+        progressBar.setVisible(false);
+        setCursor(Cursor.getDefaultCursor());
+        backendCombo.setEnabled(true);
+        promptArea.setEnabled(true);
+        clearButton.setEnabled(true);
+        sendButton.setText("Send");
+        updateSendEnabled();
+    }
+
+    void showWorking(BackendChoice backend) {
+        requestActive = true;
+        statusLabel.setText("Waiting for " + backend.label() + "...");
+        progressBar.setVisible(true);
+        progressBar.setIndeterminate(true);
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        sendButton.setEnabled(false);
+        sendButton.setText("Working...");
+        backendCombo.setEnabled(false);
+        promptArea.setEnabled(true);
+        clearButton.setEnabled(false);
+    }
+
+    void showSucceeded() {
+        showReady();
+    }
+
+    void showFailed() {
+        requestActive = false;
+        statusLabel.setText("Failed");
+        progressBar.setIndeterminate(false);
+        progressBar.setVisible(false);
+        setCursor(Cursor.getDefaultCursor());
+        backendCombo.setEnabled(true);
+        promptArea.setEnabled(true);
+        clearButton.setEnabled(true);
+        sendButton.setText("Send");
+        updateSendEnabled();
+    }
+
+    private void updateSendEnabled() {
+        sendButton.setEnabled(!requestActive && !promptArea.getText().isBlank());
     }
 
     private void appendBlock(String label, String text) {
@@ -181,5 +262,48 @@ final class MyClawDesktopFrame extends JFrame {
             transcriptArea.append("\n");
         }
         transcriptArea.setCaretPosition(transcriptArea.getDocument().getLength());
+    }
+
+    boolean requestActive() {
+        return requestActive;
+    }
+
+    String statusText() {
+        return statusLabel.getText();
+    }
+
+    boolean sendEnabled() {
+        return sendButton.isEnabled();
+    }
+
+    boolean backendSelectionEnabled() {
+        return backendCombo.isEnabled();
+    }
+
+    boolean progressActive() {
+        return progressBar.isVisible() && progressBar.isIndeterminate();
+    }
+
+    String transcriptText() {
+        return transcriptArea.getText();
+    }
+
+    void setPromptText(String prompt) {
+        promptArea.setText(prompt);
+    }
+
+    void selectBackend(String backendId) {
+        for (int index = 0; index < backendCombo.getItemCount(); index++) {
+            BackendChoice choice = backendCombo.getItemAt(index);
+            if (choice.id().equals(backendId)) {
+                backendCombo.setSelectedIndex(index);
+                return;
+            }
+        }
+        throw new IllegalArgumentException("Unknown desktop backend: " + backendId);
+    }
+
+    void submitForTest() {
+        sendPrompt();
     }
 }
