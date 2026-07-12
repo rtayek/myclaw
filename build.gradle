@@ -29,6 +29,19 @@ tasks.register('runDesktop', JavaExec) {
     mainClass = 'com.ray.myclaw.DesktopMain'
 }
 
+tasks.register('probe', JavaExec) {
+    description = 'Runs the local Probe main class.'
+    group = 'verification'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.ray.myclaw.Probe'
+}
+
+tasks.register('prbe') {
+    description = 'Alias for probe.'
+    group = 'verification'
+    dependsOn tasks.named('probe')
+}
+
 dependencies {
     implementation 'com.formdev:flatlaf:3.5.4'
     testImplementation 'org.junit.jupiter:junit-jupiter:6.0.0'
