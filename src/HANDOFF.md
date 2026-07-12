@@ -8,14 +8,14 @@ started merging opt-in latency tests and did not finish. Complete it.
 - The repo already has this pattern for opt-in tests: see the
   `claudeSmokeTest` and `ollamaSmokeTest` source sets, configurations,
   and tasks in build.gradle. The latency tests must follow it exactly.
-- The test sources are in this zip under `src/latencyTest/java/com/ray/myclaw/`:
+- The test sources are in this zip under `src/latencyTest/java/myclaw/`:
   ClaudeLatencyTest.java, OllamaLatencyTest.java, LatencyStats.java.
   They may already be partially copied into the repo - check first,
   and prefer the versions from this zip if they differ.
 
 ## Tasks
 
-1. Ensure `src/latencyTest/java/com/ray/myclaw/` exists in the repo with
+1. Ensure `src/latencyTest/java/myclaw/` exists in the repo with
    the three files from this zip.
 
 2. Edit build.gradle:
