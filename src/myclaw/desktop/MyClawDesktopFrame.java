@@ -129,13 +129,16 @@ final class MyClawDesktopFrame extends JFrame {
         progressBar.setIndeterminate(false);
         progressBar.setVisible(false);
         progressBar.setStringPainted(false);
+        progressBar.setPreferredSize(new Dimension(180, 22));
+        sendButton.setMargin(new Insets(8, 18, 8, 18));
     }
 
     private JPanel contentPanel() {
-        JPanel panel = new JPanel(new BorderLayout(8, 8));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel panel = new JPanel(new BorderLayout(12, 12));
+        panel.setBorder(BorderFactory.createEmptyBorder(14, 14, 14, 14));
 
-        JPanel topPanel = new JPanel(new BorderLayout(8, 8));
+        JPanel topPanel = new JPanel(new BorderLayout(12, 8));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 2, 0));
         topPanel.add(new JLabel("Backend:"), BorderLayout.WEST);
         topPanel.add(backendCombo, BorderLayout.CENTER);
 
@@ -153,14 +156,25 @@ final class MyClawDesktopFrame extends JFrame {
         rightControls.add(clearButton, BorderLayout.EAST);
         topPanel.add(rightControls, BorderLayout.EAST);
 
+        JScrollPane transcriptScroll = new JScrollPane(transcriptView.component());
+        transcriptScroll.setBorder(BorderFactory.createTitledBorder("Transcript"));
+
+        JScrollPane promptScroll = new JScrollPane(promptArea);
+        promptScroll.setBorder(BorderFactory.createTitledBorder("Prompt"));
+        promptScroll.setMinimumSize(new Dimension(200, 150));
+        promptScroll.setPreferredSize(new Dimension(900, 210));
+
         JSplitPane splitPane = new JSplitPane(
                 JSplitPane.VERTICAL_SPLIT,
-                new JScrollPane(transcriptView.component()),
-                new JScrollPane(promptArea)
+                transcriptScroll,
+                promptScroll
         );
         splitPane.setResizeWeight(0.75);
+        splitPane.setContinuousLayout(true);
+        splitPane.setDividerSize(10);
 
-        JPanel bottomPanel = new JPanel(new BorderLayout(8, 8));
+        JPanel bottomPanel = new JPanel(new BorderLayout(12, 8));
+        bottomPanel.setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
         bottomPanel.add(statusLabel, BorderLayout.CENTER);
 
         JPanel actionPanel = new JPanel(new BorderLayout(8, 8));
