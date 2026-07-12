@@ -178,6 +178,25 @@ final class MyClawDesktopFrame extends JFrame {
                 sendPrompt();
             }
         });
+
+        promptArea.getInputMap().put(KeyStroke.getKeyStroke("ENTER"), "newlineOrSendOnDoubleEnter");
+        promptArea.getActionMap().put("newlineOrSendOnDoubleEnter", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                handleEnterKey();
+            }
+        });
+    }
+
+    private void handleEnterKey() {
+        String text = promptArea.getText();
+        boolean caretAtEnd = promptArea.getCaretPosition() == text.length();
+        if (caretAtEnd && text.endsWith("\n") && !text.isBlank()) {
+            promptArea.setText(text.stripTrailing());
+            sendPrompt();
+        } else {
+            promptArea.replaceSelection("\n");
+        }
     }
 
     private void sendPrompt() {
