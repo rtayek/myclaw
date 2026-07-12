@@ -11,12 +11,16 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
@@ -42,8 +46,13 @@ final class MyClawDesktopFrame extends JFrame {
     private boolean requestActive;
 
     MyClawDesktopFrame(PromptService promptService) {
+        this(promptService, new ThemeManager());
+    }
+
+    MyClawDesktopFrame(PromptService promptService, ThemeManager themeManager) {
         super("myclaw");
         this.promptService = Objects.requireNonNull(promptService, "promptService");
+        Objects.requireNonNull(themeManager, "themeManager");
         this.backendCombo = new JComboBox<>(BACKEND_CHOICES.toArray(BackendChoice[]::new));
         this.transcriptArea = new JTextArea();
         this.promptArea = new JTextArea(6, 60);
@@ -55,11 +64,31 @@ final class MyClawDesktopFrame extends JFrame {
         configureFrame();
         configureTextAreas();
         configureProgressBar();
+        setJMenuBar(menuBar(themeManager));
         setContentPane(contentPanel());
         pack();
         setLocationRelativeTo(null);
         wireActions();
         showReady();
+    }
+
+    private JMenuBar menuBar(ThemeManager themeManager) {
+        JMenu themeMenu = new JMenu("Theme");
+        ButtonGroup group = new ButtonGroup();
+        ThemeOption current = themeManager.currentTheme();
+        for (ThemeOption option : ThemeOption.ALL) {
+            JRadioButtonMenuItem item = new JRadioButtonMenuItem(option.label(), option.equals(current));
+            item.addActionListener(event -> themeManager.apply(option));
+            group.add(item);
+            themeMenu.add(item);
+        }
+
+        JMenu viewMenu = new JMenu("View");
+        viewMenu.add(themeMenu);
+
+        JMenuBar menuBar = new JMenuBar();
+        menuBar.add(viewMenu);
+        return menuBar;
     }
 
     private void configureFrame() {

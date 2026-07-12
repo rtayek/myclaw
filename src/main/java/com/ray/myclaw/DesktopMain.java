@@ -4,14 +4,14 @@ import java.nio.file.Path;
 import java.time.Clock;
 
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 
 public final class DesktopMain {
     private DesktopMain() {
     }
 
     public static void main(String[] args) {
-        installSystemLookAndFeel();
+        ThemeManager themeManager = new ThemeManager();
+        themeManager.apply(themeManager.currentTheme());
         SwingUtilities.invokeLater(() -> {
             Clock clock = Clock.systemUTC();
             PromptService promptService = new PromptService(
@@ -19,16 +19,8 @@ public final class DesktopMain {
                     new TranscriptWriter(Path.of("runs"), clock),
                     clock
             );
-            MyClawDesktopFrame frame = new MyClawDesktopFrame(promptService);
+            MyClawDesktopFrame frame = new MyClawDesktopFrame(promptService, themeManager);
             frame.setVisible(true);
         });
-    }
-
-    private static void installSystemLookAndFeel() {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException exception) {
-            System.err.println("Could not install system look and feel: " + exception.getMessage());
-        }
     }
 }
