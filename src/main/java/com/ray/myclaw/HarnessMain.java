@@ -1,6 +1,9 @@
 package com.ray.myclaw;
 
 import java.nio.file.Path;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -21,7 +24,8 @@ public final class HarnessMain {
                 backends,
                 new TranscriptWriter(Path.of("runs")),
                 Clock.systemUTC(),
-                new ResultReporter(System.out, System.err)
+                new ResultReporter(System.out, System.err),
+                System.in
         ).run(args);
         System.exit(exitCode);
     }
@@ -34,17 +38,20 @@ final class HarnessMainApplication {
     private final TranscriptWriter transcriptWriter;
     private final Clock clock;
     private final ResultReporter reporter;
+    private final InputStream input;
 
     HarnessMainApplication(
             Map<String, AiBackend> backends,
             TranscriptWriter transcriptWriter,
             Clock clock,
-            ResultReporter reporter
+            ResultReporter reporter,
+            InputStream input
     ) {
         this.backends = backends;
         this.transcriptWriter = transcriptWriter;
         this.clock = clock;
         this.reporter = reporter;
+        this.input = input;
     }
 
     int run(String[] args) {
@@ -59,7 +66,15 @@ final class HarnessMainApplication {
             return 2;
         }
 
-        AiRequest request = AiRequest.of(args[1]);
+        String prompt;
+        try {
+            prompt = promptFrom(args[1], input);
+        } catch (PromptInputException exception) {
+            reporter.reportUsageError(exception.getMessage());
+            return 2;
+        }
+
+        AiRequest request = AiRequest.of(prompt);
         Instant started = clock.instant();
         String runId = TranscriptWriter.newRunId();
         try {
@@ -136,5 +151,30 @@ final class HarnessMainApplication {
             return ClaudeCliBackend.commandFor(request);
         }
         return List.of();
+    }
+
+    private static String promptFrom(String argument, InputStream input) {
+        if (!"-".equals(argument)) {
+            return argument;
+        }
+        try {
+            String prompt = new String(input.readAllBytes(), StandardCharsets.UTF_8);
+            if (prompt.isEmpty()) {
+                throw new PromptInputException("Prompt from standard input is empty.");
+            }
+            return prompt;
+        } catch (IOException exception) {
+            throw new PromptInputException("Could not read prompt from standard input.", exception);
+        }
+    }
+}
+
+final class PromptInputException extends RuntimeException {
+    PromptInputException(String message) {
+        super(message);
+    }
+
+    PromptInputException(String message, Throwable cause) {
+        super(message, cause);
     }
 }
