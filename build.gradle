@@ -61,6 +61,8 @@ tasks.register('claudeSmokeTest', Test) {
 }
 
 jar {
+    archiveFileName = 'myclaw.jar'
+
     manifest {
         attributes 'Main-Class': application.mainClass.get()
     }
