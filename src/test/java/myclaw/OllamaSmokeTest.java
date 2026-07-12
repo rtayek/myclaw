@@ -1,5 +1,6 @@
 package myclaw;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -7,6 +8,7 @@ import java.time.Duration;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class OllamaSmokeTest {
+    @Tag("ollamaSmoke")
     @Test
     void ollamaGlmReturnsExpectedText() {
         OllamaCliBackend backend = new OllamaCliBackend(new CommandRunner(), Duration.ofMinutes(2), "glm4:9b");

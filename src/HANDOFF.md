@@ -8,42 +8,27 @@ started merging opt-in latency tests and did not finish. Complete it.
 - The repo already has this pattern for opt-in tests: see the
   `claudeSmokeTest` and `ollamaSmokeTest` source sets, configurations,
   and tasks in build.gradle. The latency tests must follow it exactly.
-- The test sources are in this zip under `src/latencyTest/java/myclaw/`:
+- The test sources now live under `src/test/java/myclaw/`:
   ClaudeLatencyTest.java, OllamaLatencyTest.java, LatencyStats.java.
-  They may already be partially copied into the repo - check first,
-  and prefer the versions from this zip if they differ.
+  They are tagged opt-in tests and should not run as part of ordinary `test`.
 
 ## Tasks
 
-1. Ensure `src/latencyTest/java/myclaw/` exists in the repo with
-   the three files from this zip.
+1. Ensure `src/test/java/myclaw/` contains the three latency files.
 
-2. Edit build.gradle:
-   a. Inside the existing `sourceSets { }` block add:
-
-      latencyTest {
-          java.srcDir 'src/latencyTest/java'
-          compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
-          runtimeClasspath += output + compileClasspath
-      }
-
-   b. Inside the existing `configurations { }` block add:
-
-      latencyTestImplementation.extendsFrom testImplementation
-      latencyTestRuntimeOnly.extendsFrom testRuntimeOnly
-
-   c. Register a task alongside claudeSmokeTest:
+2. Edit build.gradle so ordinary `test` excludes the `latency` tag and
+   register a task alongside claudeSmokeTest:
 
       tasks.register('latencyTest', Test) {
           description = 'Times backend round trips and alarms if too slow.'
           group = 'verification'
-          testClassesDirs = sourceSets.latencyTest.output.classesDirs
-          classpath = sourceSets.latencyTest.runtimeClasspath
-          useJUnitPlatform()
+          testClassesDirs = sourceSets.test.output.classesDirs
+          classpath = sourceSets.test.runtimeClasspath
+          useJUnitPlatform { includeTags 'latency' }
           testLogging { showStandardStreams = true }
       }
 
-3. Verify compilation only: `./gradlew compileLatencyTestJava`.
+3. Verify compilation through the normal test source set: `./gradlew testClasses`.
    Fix any compile errors (the tests use ClaudeCliBackend, OllamaCliBackend,
    CommandRunner, AiRequest from src/main - adjust to actual constructor
    signatures if they changed).

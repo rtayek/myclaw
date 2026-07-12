@@ -1,5 +1,6 @@
 package myclaw;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -22,6 +23,7 @@ final class ClaudeLatencyTest {
     // Tune after your first few runs establish a baseline.
     private static final Duration MAX_AVG = Duration.ofSeconds(15);
 
+    @Tag("latency")
     @Test
     void coldRoundTripStaysUnderThreshold() {
         ClaudeCliBackend backend = new ClaudeCliBackend(new CommandRunner(), Duration.ofSeconds(60));

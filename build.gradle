@@ -53,7 +53,9 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags 'claudeSmoke', 'ollamaSmoke', 'latency'
+    }
 }
 
 tasks.withType(Test).configureEach {
@@ -63,41 +65,39 @@ tasks.withType(Test).configureEach {
     reports.html.outputLocation = layout.buildDirectory.dir("reports/tests/${name}-${runStamp.get()}")
 }
 
-sourceSets {
-    claudeSmokeTest {
-        java.srcDir 'src/claudeSmokeTest/java'
-        compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
-        runtimeClasspath += output + compileClasspath
-    }
-    ollamaSmokeTest {
-        java.srcDir 'src/ollamaSmokeTest/java'
-        compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
-        runtimeClasspath += output + compileClasspath
-    }
-}
-
-configurations {
-    claudeSmokeTestImplementation.extendsFrom testImplementation
-    claudeSmokeTestRuntimeOnly.extendsFrom testRuntimeOnly
-    ollamaSmokeTestImplementation.extendsFrom testImplementation
-    ollamaSmokeTestRuntimeOnly.extendsFrom testRuntimeOnly
-}
-
 tasks.register('claudeSmokeTest', Test) {
     description = 'Runs the explicitly enabled Claude CLI smoke test.'
     group = 'verification'
-    testClassesDirs = sourceSets.claudeSmokeTest.output.classesDirs
-    classpath = sourceSets.claudeSmokeTest.runtimeClasspath
-    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'claudeSmoke'
+    }
     shouldRunAfter test
 }
 
 tasks.register('ollamaSmokeTest', Test) {
     description = 'Runs the explicitly enabled Ollama glm4:9b smoke test.'
     group = 'verification'
-    testClassesDirs = sourceSets.ollamaSmokeTest.output.classesDirs
-    classpath = sourceSets.ollamaSmokeTest.runtimeClasspath
-    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'ollamaSmoke'
+    }
+    shouldRunAfter test
+}
+
+tasks.register('latencyTest', Test) {
+    description = 'Times backend round trips and alarms if too slow.'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'latency'
+    }
+    testLogging {
+        showStandardStreams = true
+    }
     shouldRunAfter test
 }
 

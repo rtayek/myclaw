@@ -1,5 +1,6 @@
 package myclaw;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -21,6 +22,7 @@ final class OllamaLatencyTest {
     private static final int TIMED_RUNS = 5;
     private static final Duration MAX_AVG = Duration.ofSeconds(30);
 
+    @Tag("latency")
     @Test
     void warmRoundTripStaysUnderThreshold() {
         OllamaCliBackend backend = new OllamaCliBackend(new CommandRunner(), Duration.ofMinutes(2), MODEL);
