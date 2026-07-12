@@ -1,0 +1,20 @@
+package myclaw.backend;
+
+import java.util.Objects;
+import java.util.Optional;
+
+import myclaw.execution.CommandResult;
+
+public final class AiBackendExecutionException extends AiBackendException {
+    private final CommandResult commandResult;
+
+    public AiBackendExecutionException(String message, BackendId backendId, CommandResult commandResult) {
+        super(message, backendId);
+        this.commandResult = Objects.requireNonNull(commandResult, "commandResult");
+    }
+
+    @Override
+    public Optional<CommandResult> commandResult() {
+        return Optional.of(commandResult);
+    }
+}

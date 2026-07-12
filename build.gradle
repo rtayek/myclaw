@@ -24,7 +24,7 @@ sourceSets {
 }
 
 application {
-    mainClass = 'myclaw.HarnessMain'
+    mainClass = 'myclaw.cli.HarnessMain'
 }
 
 tasks.named('run') {
@@ -35,14 +35,14 @@ tasks.register('runDesktop', JavaExec) {
     description = 'Launches the Swing desktop client.'
     group = 'application'
     classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'myclaw.DesktopMain'
+    mainClass = 'myclaw.desktop.DesktopMain'
 }
 
 tasks.register('probe', JavaExec) {
     description = 'Runs the local Probe main class.'
     group = 'verification'
     classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'myclaw.Probe'
+    mainClass = 'myclaw.tools.Probe'
 }
 
 tasks.register('prbe') {
