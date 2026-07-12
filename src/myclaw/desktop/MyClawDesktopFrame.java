@@ -11,6 +11,8 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
@@ -33,7 +35,6 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButtonMenuItem;
@@ -58,6 +59,8 @@ final class MyClawDesktopFrame extends JFrame {
     private static final String DEFAULT_FONT_FAMILY = Font.MONOSPACED;
     private static final int DEFAULT_FONT_SIZE = 18;
     private static final List<Integer> FONT_SIZES = List.of(14, 16, 18, 20, 24, 28, 32, 36, 42, 48);
+    private static final String SEND_READY_ACCESSIBLE_NAME = "Send";
+    private static final String SEND_READY_ACCESSIBLE_DESCRIPTION = "Send the prompt to the selected AI backend.";
 
     private final PromptService promptService;
     private final JComboBox<BackendChoice> backendCombo;
@@ -84,6 +87,9 @@ final class MyClawDesktopFrame extends JFrame {
     private JSplitPane splitPane;
     private JDialog transcriptDialog;
     private JButton reattachButton;
+    private JLabel backendLabel;
+    private JLabel fontLabel;
+    private JLabel sizeLabel;
     private int savedDividerLocation;
     private boolean requestActive;
 
@@ -242,8 +248,14 @@ final class MyClawDesktopFrame extends JFrame {
         editMenu.addSeparator();
         editMenu.add(new JMenuItem(focusPromptAction));
 
+        JMenu zoomMenu = new JMenu("Zoom");
+        zoomMenu.add(new JMenuItem(zoomInAction));
+        zoomMenu.add(new JMenuItem(zoomOutAction));
+        zoomMenu.add(new JMenuItem(zoomResetAction));
+
         JMenu viewMenu = new JMenu("View");
         viewMenu.add(themeMenu);
+        viewMenu.add(zoomMenu);
         viewMenu.addSeparator();
         viewMenu.add(new JMenuItem(detachTranscriptAction));
 
@@ -286,11 +298,11 @@ final class MyClawDesktopFrame extends JFrame {
     }
 
     private void configureTooltipsAndAccessibility() {
+        // sendButton and clearButton get their tooltip from the shared Action's
+        // SHORT_DESCRIPTION (set in createActions()) once wireActions() calls setAction().
         backendCombo.setToolTipText("Choose the AI backend");
         fontFamilyCombo.setToolTipText("Choose the text font");
         fontSizeCombo.setToolTipText("Change transcript and prompt text size");
-        sendButton.setToolTipText("Send prompt (Ctrl+Enter)");
-        clearButton.setToolTipText("Clear the visible transcript");
         progressBar.setToolTipText("Shows when a request is running");
 
         backendCombo.getAccessibleContext().setAccessibleName("Backend selector");
@@ -303,8 +315,8 @@ final class MyClawDesktopFrame extends JFrame {
         transcriptView.component().getAccessibleContext().setAccessibleDescription("Conversation transcript containing user prompts, AI replies, and errors.");
         promptArea.getAccessibleContext().setAccessibleName("Prompt editor");
         promptArea.getAccessibleContext().setAccessibleDescription("Enter or dictate a prompt for the selected AI backend.");
-        sendButton.getAccessibleContext().setAccessibleName("Send");
-        sendButton.getAccessibleContext().setAccessibleDescription("Send the prompt to the selected AI backend.");
+        sendButton.getAccessibleContext().setAccessibleName(SEND_READY_ACCESSIBLE_NAME);
+        sendButton.getAccessibleContext().setAccessibleDescription(SEND_READY_ACCESSIBLE_DESCRIPTION);
         clearButton.getAccessibleContext().setAccessibleName("Clear transcript");
         clearButton.getAccessibleContext().setAccessibleDescription("Clear the visible transcript.");
         statusLabel.getAccessibleContext().setAccessibleName("Status");
@@ -319,15 +331,21 @@ final class MyClawDesktopFrame extends JFrame {
 
         JPanel topPanel = new JPanel(new BorderLayout(12, 8));
         topPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 2, 0));
-        topPanel.add(new JLabel("Backend:"), BorderLayout.WEST);
+        backendLabel = new JLabel("Backend:");
+        backendLabel.setLabelFor(backendCombo);
+        topPanel.add(backendLabel, BorderLayout.WEST);
         topPanel.add(backendCombo, BorderLayout.CENTER);
 
         JPanel viewControls = new JPanel(new BorderLayout(8, 8));
-        viewControls.add(new JLabel("Font:"), BorderLayout.WEST);
+        fontLabel = new JLabel("Font:");
+        fontLabel.setLabelFor(fontFamilyCombo);
+        viewControls.add(fontLabel, BorderLayout.WEST);
         viewControls.add(fontFamilyCombo, BorderLayout.CENTER);
 
         JPanel sizeControls = new JPanel(new BorderLayout(8, 8));
-        sizeControls.add(new JLabel("Size:"), BorderLayout.WEST);
+        sizeLabel = new JLabel("Size:");
+        sizeLabel.setLabelFor(fontSizeCombo);
+        sizeControls.add(sizeLabel, BorderLayout.WEST);
         sizeControls.add(fontSizeCombo, BorderLayout.CENTER);
         viewControls.add(sizeControls, BorderLayout.EAST);
 
@@ -369,12 +387,10 @@ final class MyClawDesktopFrame extends JFrame {
 
     private void wireActions() {
         sendButton.setAction(sendAction);
-        sendButton.setToolTipText("Send prompt (Ctrl+Enter)");
         fontFamilyCombo.addActionListener(event -> applySelectedTextFont());
         fontSizeCombo.addActionListener(event -> applySelectedTextFont());
         clearButton.setAction(clearTranscriptAction);
         clearButton.setText("Clear");
-        clearButton.setToolTipText("Clear the visible transcript");
         promptArea.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent event) {
@@ -419,8 +435,11 @@ final class MyClawDesktopFrame extends JFrame {
         installZoomWheelListener(transcriptView.component());
         installZoomWheelListener(promptArea);
 
+        // promptArea never leaves the main frame, so the root-pane WHEN_IN_FOCUSED_WINDOW
+        // bindings in bindGlobalKeys() already cover keyboard zoom while it has focus.
+        // transcriptView's component needs its own binding because it can be reparented
+        // into the detached transcript dialog, a different focused window.
         bindZoomKeys(transcriptView.component());
-        bindZoomKeys(promptArea);
     }
 
     private void installZoomWheelListener(JComponent component) {
@@ -548,6 +567,7 @@ final class MyClawDesktopFrame extends JFrame {
         transcriptDialog.setVisible(true);
 
         detachTranscriptAction.putValue(Action.NAME, "Reattach Transcript");
+        statusLabel.setText("Transcript detached");
     }
 
     void reattachTranscript() {
@@ -563,6 +583,7 @@ final class MyClawDesktopFrame extends JFrame {
         reattachButton = null;
 
         detachTranscriptAction.putValue(Action.NAME, "Detach Transcript");
+        statusLabel.setText("Transcript reattached");
     }
 
     boolean transcriptDetached() {
@@ -582,32 +603,40 @@ final class MyClawDesktopFrame extends JFrame {
         statusLabel.setText(transcriptView.text().isEmpty() ? "Empty transcript copied" : "Transcript copied");
     }
 
-    private void showKeyboardShortcuts() {
-        JTextArea shortcuts = new JTextArea(keyboardShortcutsText(), 10, 42);
-        shortcuts.setEditable(false);
-        shortcuts.setFont(promptArea.getFont());
-        shortcuts.setLineWrap(false);
-        shortcuts.setWrapStyleWord(false);
-        shortcuts.setCaretPosition(0);
-        shortcuts.getAccessibleContext().setAccessibleName("Keyboard shortcuts");
-        shortcuts.getAccessibleContext().setAccessibleDescription("List of keyboard shortcuts available in myclaw.");
+    private JDialog showKeyboardShortcuts() {
+        return showTextDialog(
+                "Keyboard Shortcuts",
+                "Keyboard shortcuts",
+                "List of keyboard shortcuts available in myclaw.",
+                keyboardShortcutsText());
+    }
 
-        JDialog dialog = new JDialog(this, "Keyboard Shortcuts", false);
-        dialog.getAccessibleContext().setAccessibleName("Keyboard shortcuts");
-        dialog.getAccessibleContext().setAccessibleDescription("Keyboard shortcuts help dialog.");
-        dialog.setContentPane(new JScrollPane(shortcuts));
+    private JDialog showAbout() {
+        return showTextDialog(
+                "About myclaw",
+                "About myclaw",
+                "Information about myclaw.",
+                "myclaw\n\nAn accessible Java desktop workbench for local and command-line AI systems.");
+    }
+
+    private JDialog showTextDialog(String title, String accessibleName, String accessibleDescription, String content) {
+        JTextArea textArea = new JTextArea(content, 10, 42);
+        textArea.setEditable(false);
+        textArea.setFont(promptArea.getFont());
+        textArea.setLineWrap(false);
+        textArea.setWrapStyleWord(false);
+        textArea.setCaretPosition(0);
+        textArea.getAccessibleContext().setAccessibleName(accessibleName);
+        textArea.getAccessibleContext().setAccessibleDescription(accessibleDescription);
+
+        JDialog dialog = new JDialog(this, title, false);
+        dialog.getAccessibleContext().setAccessibleName(accessibleName);
+        dialog.getAccessibleContext().setAccessibleDescription(accessibleDescription);
+        dialog.setContentPane(new JScrollPane(textArea));
         dialog.pack();
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
-    }
-
-    private void showAbout() {
-        JOptionPane.showMessageDialog(
-                this,
-                "myclaw\n\nAn accessible Java desktop workbench for local and command-line AI systems.",
-                "About myclaw",
-                JOptionPane.INFORMATION_MESSAGE
-        );
+        return dialog;
     }
 
     private static String keyboardShortcutsText() {
@@ -687,6 +716,7 @@ final class MyClawDesktopFrame extends JFrame {
         promptArea.setEnabled(true);
         clearTranscriptAction.setEnabled(true);
         sendButton.setText("Send");
+        restoreSendAccessibleState();
         updateSendEnabled();
     }
 
@@ -698,6 +728,9 @@ final class MyClawDesktopFrame extends JFrame {
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         sendAction.setEnabled(false);
         sendButton.setText("Working...");
+        sendButton.getAccessibleContext().setAccessibleName("Send, working");
+        sendButton.getAccessibleContext().setAccessibleDescription(
+                "Waiting for " + backend.label() + ". Send is unavailable until the request finishes.");
         backendCombo.setEnabled(false);
         promptArea.setEnabled(true);
         clearTranscriptAction.setEnabled(false);
@@ -717,7 +750,13 @@ final class MyClawDesktopFrame extends JFrame {
         promptArea.setEnabled(true);
         clearTranscriptAction.setEnabled(true);
         sendButton.setText("Send");
+        restoreSendAccessibleState();
         updateSendEnabled();
+    }
+
+    private void restoreSendAccessibleState() {
+        sendButton.getAccessibleContext().setAccessibleName(SEND_READY_ACCESSIBLE_NAME);
+        sendButton.getAccessibleContext().setAccessibleDescription(SEND_READY_ACCESSIBLE_DESCRIPTION);
     }
 
     private void updateSendEnabled() {
@@ -828,15 +867,32 @@ final class MyClawDesktopFrame extends JFrame {
         for (int menuIndex = 0; menuIndex < menuBar.getMenuCount(); menuIndex++) {
             JMenu menu = menuBar.getMenu(menuIndex);
             if (menu != null && menuName.equals(menu.getText())) {
-                for (int itemIndex = 0; itemIndex < menu.getItemCount(); itemIndex++) {
-                    JMenuItem item = menu.getItem(itemIndex);
-                    if (item != null && itemName.equals(item.getText())) {
-                        return item.getAction();
-                    }
+                Action found = findMenuItemAction(menu, itemName);
+                if (found != null) {
+                    return found;
                 }
             }
         }
         throw new IllegalArgumentException("Menu item not found: " + menuName + " > " + itemName);
+    }
+
+    private static Action findMenuItemAction(JMenu menu, String itemName) {
+        for (int itemIndex = 0; itemIndex < menu.getItemCount(); itemIndex++) {
+            JMenuItem item = menu.getItem(itemIndex);
+            if (item == null) {
+                continue;
+            }
+            if (itemName.equals(item.getText())) {
+                return item.getAction();
+            }
+            if (item instanceof JMenu submenu) {
+                Action found = findMenuItemAction(submenu, itemName);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return null;
     }
 
     String accessibleNameForTest(String componentName) {
@@ -859,8 +915,56 @@ final class MyClawDesktopFrame extends JFrame {
         return keyboardShortcutsText();
     }
 
+    String accessibleDescriptionForTest(String componentName) {
+        return switch (componentName) {
+            case "backend" -> backendCombo.getAccessibleContext().getAccessibleDescription();
+            case "font" -> fontFamilyCombo.getAccessibleContext().getAccessibleDescription();
+            case "size" -> fontSizeCombo.getAccessibleContext().getAccessibleDescription();
+            case "transcript" -> transcriptView.component().getAccessibleContext().getAccessibleDescription();
+            case "prompt" -> promptArea.getAccessibleContext().getAccessibleDescription();
+            case "send" -> sendButton.getAccessibleContext().getAccessibleDescription();
+            case "clear" -> clearButton.getAccessibleContext().getAccessibleDescription();
+            case "status" -> statusLabel.getAccessibleContext().getAccessibleDescription();
+            case "progress" -> progressBar.getAccessibleContext().getAccessibleDescription();
+            default -> throw new IllegalArgumentException("Unknown component: " + componentName);
+        };
+    }
+
+    boolean labelAssociatedForTest(String componentName) {
+        return switch (componentName) {
+            case "backend" -> backendLabel.getLabelFor() == backendCombo;
+            case "font" -> fontLabel.getLabelFor() == fontFamilyCombo;
+            case "size" -> sizeLabel.getLabelFor() == fontSizeCombo;
+            default -> throw new IllegalArgumentException("Unknown label: " + componentName);
+        };
+    }
+
     boolean promptFocusOwnerForTest() {
         return promptArea.isFocusOwner();
+    }
+
+    int promptScrollValueForTest() {
+        JScrollPane scrollPane = (JScrollPane) SwingUtilities.getAncestorOfClass(JScrollPane.class, promptArea);
+        return scrollPane.getVerticalScrollBar().getValue();
+    }
+
+    void dispatchPromptWheelEventForTest(boolean ctrlDown, int wheelRotation) {
+        int modifiers = ctrlDown ? InputEvent.CTRL_DOWN_MASK : 0;
+        MouseWheelEvent event = new MouseWheelEvent(
+                promptArea, MouseEvent.MOUSE_WHEEL, System.currentTimeMillis(), modifiers,
+                10, 10, 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, wheelRotation);
+        promptArea.dispatchEvent(event);
+    }
+
+    Font aboutFontForTest() {
+        JDialog dialog = showAbout();
+        try {
+            JScrollPane scrollPane = (JScrollPane) dialog.getContentPane();
+            JTextArea textArea = (JTextArea) scrollPane.getViewport().getView();
+            return textArea.getFont();
+        } finally {
+            dialog.dispose();
+        }
     }
 
     interface ClipboardWriter {

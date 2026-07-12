@@ -30,6 +30,7 @@ import myclaw.transcript.TranscriptWriter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -225,6 +226,183 @@ final class MyClawDesktopFrameTest {
             onEdt(() -> {
                 assertFalse(frame.actionForTest("sendPrompt").isEnabled());
                 assertTrue(frame.actionForTest("clearTranscript").isEnabled());
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
+    void zoomMenuItemsReuseExistingActions() throws Exception {
+        MyClawDesktopFrame frame = frameWith("claude", request ->
+                new AiResponse("", new BackendId("Claude CLI"), Duration.ZERO)
+        );
+        try {
+            onEdt(() -> {
+                assertSame(frame.actionForTest("zoomIn"), frame.menuActionForTest("View", "Zoom In"));
+                assertSame(frame.actionForTest("zoomOut"), frame.menuActionForTest("View", "Zoom Out"));
+                assertSame(frame.actionForTest("zoomReset"), frame.menuActionForTest("View", "Reset Text Size"));
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
+    void detachUpdatesStatusText() throws Exception {
+        MyClawDesktopFrame frame = frameWith("claude", request ->
+                new AiResponse("", new BackendId("Claude CLI"), Duration.ZERO)
+        );
+        try {
+            onEdt(() -> {
+                frame.detachTranscript();
+                assertEquals("Transcript detached", frame.statusText());
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
+    void reattachUpdatesStatusText() throws Exception {
+        MyClawDesktopFrame frame = frameWith("claude", request ->
+                new AiResponse("", new BackendId("Claude CLI"), Duration.ZERO)
+        );
+        try {
+            onEdt(() -> {
+                frame.detachTranscript();
+                frame.reattachTranscript();
+                assertEquals("Transcript reattached", frame.statusText());
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
+    void backendFontAndSizeLabelsAreAssociatedWithTheirControls() throws Exception {
+        MyClawDesktopFrame frame = frameWith("claude", request ->
+                new AiResponse("", new BackendId("Claude CLI"), Duration.ZERO)
+        );
+        try {
+            onEdt(() -> {
+                assertTrue(frame.labelAssociatedForTest("backend"));
+                assertTrue(frame.labelAssociatedForTest("font"));
+                assertTrue(frame.labelAssociatedForTest("size"));
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
+    void majorControlsHaveMeaningfulAccessibleDescriptions() throws Exception {
+        MyClawDesktopFrame frame = frameWith("claude", request ->
+                new AiResponse("", new BackendId("Claude CLI"), Duration.ZERO)
+        );
+        try {
+            onEdt(() -> {
+                for (String component : new String[] {
+                        "backend", "font", "size", "transcript", "prompt", "send", "clear", "status", "progress"
+                }) {
+                    String description = frame.accessibleDescriptionForTest(component);
+                    assertNotNull(description);
+                    assertFalse(description.isBlank());
+                }
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
+    void sendAccessibleStateReflectsWorkingAndRestoresAfter() throws Exception {
+        BlockingBackend backend = new BlockingBackend("response\n");
+        MyClawDesktopFrame frame = frameWith("claude", backend);
+        try {
+            String readyName = onEdtReturning(() -> frame.accessibleNameForTest("send"));
+            String readyDescription = onEdtReturning(() -> frame.accessibleDescriptionForTest("send"));
+
+            onEdt(() -> {
+                frame.selectBackend("claude");
+                frame.setPromptText("hello");
+                frame.submitForTest();
+            });
+            assertTrue(backend.started.await(5, TimeUnit.SECONDS));
+
+            onEdt(() -> {
+                assertNotEquals(readyName, frame.accessibleNameForTest("send"));
+                assertNotEquals(readyDescription, frame.accessibleDescriptionForTest("send"));
+            });
+
+            backend.finish.countDown();
+            waitForStatus(frame, "Ready");
+
+            onEdt(() -> {
+                assertEquals(readyName, frame.accessibleNameForTest("send"));
+                assertEquals(readyDescription, frame.accessibleDescriptionForTest("send"));
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
+    void aboutDialogUsesCurrentlySelectedFont() throws Exception {
+        MyClawDesktopFrame frame = frameWith("claude", request ->
+                new AiResponse("", new BackendId("Claude CLI"), Duration.ZERO)
+        );
+        try {
+            onEdt(() -> {
+                frame.selectFontFamilyForTest(Font.SERIF);
+                frame.selectFontSizeForTest(28);
+
+                Font aboutFont = frame.aboutFontForTest();
+                assertEquals(Font.SERIF, aboutFont.getFamily());
+                assertEquals(28, aboutFont.getSize());
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
+    void plainWheelStillScrollsThePromptArea() throws Exception {
+        MyClawDesktopFrame frame = frameWith("claude", request ->
+                new AiResponse("", new BackendId("Claude CLI"), Duration.ZERO)
+        );
+        try {
+            onEdt(() -> {
+                frame.setPromptText("line\n".repeat(200));
+                frame.pack();
+
+                int before = frame.promptScrollValueForTest();
+                frame.dispatchPromptWheelEventForTest(false, 3);
+                int after = frame.promptScrollValueForTest();
+
+                assertTrue(after > before);
+            });
+        } finally {
+            dispose(frame);
+        }
+    }
+
+    @Test
+    void ctrlWheelZoomsInsteadOfScrollingThePromptArea() throws Exception {
+        MyClawDesktopFrame frame = frameWith("claude", request ->
+                new AiResponse("", new BackendId("Claude CLI"), Duration.ZERO)
+        );
+        try {
+            onEdt(() -> {
+                frame.setPromptText("line\n".repeat(200));
+                frame.pack();
+                int startingSize = frame.promptFontForTest().getSize();
+                int before = frame.promptScrollValueForTest();
+
+                frame.dispatchPromptWheelEventForTest(true, -1);
+
+                assertEquals(startingSize + 2, frame.promptFontForTest().getSize());
+                assertEquals(before, frame.promptScrollValueForTest());
             });
         } finally {
             dispose(frame);
