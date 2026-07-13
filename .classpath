@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk-25">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="tst/unit"/>
+	<classpathentry kind="src" path="tst/integration"/>
+	<classpathentry kind="src" path="tst/smoke"/>
+	<classpathentry kind="src" path="tst/slow"/>
+	<classpathentry kind="lib" path="C:/Users/ray/.gradle/caches/modules-2/files-2.1/com.google.code.gson/gson/2.11.0/527175ca6d81050b53bdd4c457a6d6e017626b0e/gson-2.11.0.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ray/.gradle/caches/modules-2/files-2.1/com.formdev/flatlaf/3.5.4/cd61f9fc2550473fdacebc205a68e24a065f6fdf/flatlaf-3.5.4.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
