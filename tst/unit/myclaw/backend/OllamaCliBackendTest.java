@@ -50,8 +50,9 @@ final class OllamaCliBackendTest {
         backend.ask(AiRequest.withProfile("Help me understand fractions", PromptProfile.GUIDED_TEACHING));
 
         assertEquals(List.of("ollama", "run", "glm4:9b"), executor.request.command());
-        assertTrue(executor.request.standardInput().contains("Use guided teaching behavior"));
-        assertTrue(executor.request.standardInput().contains("prefer understanding over merely returning an answer"));
+        assertTrue(executor.request.standardInput().contains("PROFILE=GUIDED_TEACHING"));
+        assertTrue(executor.request.standardInput().contains("automated pedagogical core"));
+        assertTrue(executor.request.standardInput().contains("Conceptual guidance"));
         assertTrue(executor.request.standardInput().contains("Help me understand fractions"));
     }
 

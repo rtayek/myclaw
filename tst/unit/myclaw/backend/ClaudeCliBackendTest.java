@@ -43,8 +43,9 @@ final class ClaudeCliBackendTest {
         backend.ask(AiRequest.withProfile("Help me understand fractions", PromptProfile.GUIDED_TEACHING));
 
         String promptArgument = executor.request.command().get(2);
-        assertTrue(promptArgument.contains("Use guided teaching behavior"));
-        assertTrue(promptArgument.contains("adapt to the learner's apparent level"));
+        assertTrue(promptArgument.contains("PROFILE=GUIDED_TEACHING"));
+        assertTrue(promptArgument.contains("automated pedagogical core"));
+        assertTrue(promptArgument.contains("Respect explicit requests for level"));
         assertTrue(promptArgument.contains("Help me understand fractions"));
         assertEquals(3, executor.request.command().size());
     }
