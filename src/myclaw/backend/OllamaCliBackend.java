@@ -41,7 +41,7 @@ public final class OllamaCliBackend implements CommandBackedAiBackend {
         List<String> command = commandFor(request);
         CommandResult result;
         try {
-            result = commandExecutor.run(new CommandRequest(command, request.prompt(), timeout));
+            result = commandExecutor.run(new CommandRequest(command, request.effectivePrompt(), timeout));
         } catch (CommandExecutionException exception) {
             throw new AiBackendStartupException(
                     "Could not start " + backendId + ": " + exception.getMessage(), backendId, exception);

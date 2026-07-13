@@ -14,6 +14,7 @@ import myclaw.backend.AiRequest;
 import myclaw.backend.AiResponse;
 import myclaw.backend.CommandBackedAiBackend;
 import myclaw.backend.CommandBackedRun;
+import myclaw.backend.PromptProfile;
 import myclaw.execution.CommandResult;
 import myclaw.transcript.Transcript;
 import myclaw.transcript.TranscriptWriter;
@@ -34,12 +35,16 @@ public final class PromptService {
     }
 
     public PromptResult submit(String backendName, String prompt) {
+        return submit(backendName, prompt, PromptProfile.GENERAL);
+    }
+
+    public PromptResult submit(String backendName, String prompt, PromptProfile profile) {
         AiBackend backend = backends.get(backendName);
         if (backend == null) {
             throw new IllegalArgumentException("Unknown backend: " + backendName);
         }
 
-        AiRequest request = AiRequest.of(prompt);
+        AiRequest request = AiRequest.withProfile(prompt, profile);
         Instant started = clock.instant();
         String runId = TranscriptWriter.newRunId();
         try {

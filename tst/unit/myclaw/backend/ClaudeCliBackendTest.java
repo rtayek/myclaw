@@ -37,6 +37,19 @@ final class ClaudeCliBackendTest {
     }
 
     @Test
+    void guidedTeachingProfileAddsTeachingInstructionToClaudePromptArgument() {
+        executor.result = new CommandResult(0, "done", "", Duration.ofMillis(1), false);
+
+        backend.ask(AiRequest.withProfile("Help me understand fractions", PromptProfile.GUIDED_TEACHING));
+
+        String promptArgument = executor.request.command().get(2);
+        assertTrue(promptArgument.contains("Use guided teaching behavior"));
+        assertTrue(promptArgument.contains("adapt to the learner's apparent level"));
+        assertTrue(promptArgument.contains("Help me understand fractions"));
+        assertEquals(3, executor.request.command().size());
+    }
+
+    @Test
     void nonzeroCommandResultBecomesClearBackendFailure() {
         executor.result = new CommandResult(7, "", "bad credentials", Duration.ofMillis(2), false);
 

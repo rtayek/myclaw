@@ -44,6 +44,18 @@ final class OllamaCliBackendTest {
     }
 
     @Test
+    void guidedTeachingProfileAddsTeachingInstructionToOllamaStandardInput() {
+        executor.result = new CommandResult(0, "ok", "", Duration.ofMillis(1), false);
+
+        backend.ask(AiRequest.withProfile("Help me understand fractions", PromptProfile.GUIDED_TEACHING));
+
+        assertEquals(List.of("ollama", "run", "glm4:9b"), executor.request.command());
+        assertTrue(executor.request.standardInput().contains("Use guided teaching behavior"));
+        assertTrue(executor.request.standardInput().contains("prefer understanding over merely returning an answer"));
+        assertTrue(executor.request.standardInput().contains("Help me understand fractions"));
+    }
+
+    @Test
     void successfulOutputBecomesAiResponseText() {
         executor.result = new CommandResult(0, "GLM_OK\n", "", Duration.ofMillis(12), false);
 

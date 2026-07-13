@@ -72,6 +72,6 @@ public final class ClaudeCliBackend implements CommandBackedAiBackend {
     @Override
     public List<String> commandFor(AiRequest request) {
         Objects.requireNonNull(request, "request");
-        return List.of("claude", "-p", request.prompt());
+        return List.of("claude", "-p", request.effectivePrompt());
     }
 }

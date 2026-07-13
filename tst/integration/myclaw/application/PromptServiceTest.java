@@ -45,6 +45,40 @@ final class PromptServiceTest {
     }
 
     @Test
+    void generalSubmitUsesGeneralProfileAndKeepsPromptUnchanged() {
+        CapturingCommandBackend backend = new CapturingCommandBackend(
+                new CommandBackedRun(
+                        new AiResponse("OK\n", new BackendId("Fake CLI"), Duration.ofMillis(8)),
+                        new CommandResult(0, "OK\n", "", Duration.ofMillis(8), false),
+                        List.of("fake", "run")
+                )
+        );
+        PromptService service = serviceWith("fake", backend);
+
+        service.submit("fake", "Explain fractions");
+
+        assertEquals(PromptProfile.GENERAL, backend.request.profile());
+        assertEquals("Explain fractions", backend.request.prompt());
+    }
+
+    @Test
+    void guidedTeachingSubmitPassesTeachingProfileToBackend() {
+        CapturingCommandBackend backend = new CapturingCommandBackend(
+                new CommandBackedRun(
+                        new AiResponse("OK\n", new BackendId("Fake CLI"), Duration.ofMillis(8)),
+                        new CommandResult(0, "OK\n", "", Duration.ofMillis(8), false),
+                        List.of("fake", "run")
+                )
+        );
+        PromptService service = serviceWith("fake", backend);
+
+        service.submit("fake", "Help me understand fractions", PromptProfile.GUIDED_TEACHING);
+
+        assertEquals(PromptProfile.GUIDED_TEACHING, backend.request.profile());
+        assertEquals("Help me understand fractions", backend.request.prompt());
+    }
+
+    @Test
     void failedSubmitWritesTranscriptBeforeRethrowing() throws Exception {
         AiBackendException failure = new AiBackendExecutionException(
                 "Fake CLI exited with status 9",
