@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 
 import myclaw.backend.AiBackend;
 import myclaw.backend.AiBackendException;
@@ -21,17 +22,38 @@ import myclaw.transcript.TranscriptWriter;
 
 public final class PromptService {
     private final Map<String, AiBackend> backends;
+    private final Map<String, String> backendLabels;
     private final TranscriptWriter transcriptWriter;
     private final Clock clock;
 
     public PromptService(Map<String, AiBackend> backends, TranscriptWriter transcriptWriter, Clock clock) {
+        this(backends, backendIdsAsLabels(backends), transcriptWriter, clock);
+    }
+
+    public PromptService(
+            Map<String, AiBackend> backends,
+            Map<String, String> backendLabels,
+            TranscriptWriter transcriptWriter,
+            Clock clock
+    ) {
         this.backends = Map.copyOf(Objects.requireNonNull(backends, "backends"));
+        this.backendLabels = Map.copyOf(Objects.requireNonNull(backendLabels, "backendLabels"));
+        if (!this.backendLabels.keySet().containsAll(this.backends.keySet())) {
+            throw new IllegalArgumentException("backendLabels must include every backend id");
+        }
         this.transcriptWriter = Objects.requireNonNull(transcriptWriter, "transcriptWriter");
         this.clock = Objects.requireNonNull(clock, "clock");
     }
 
     public boolean hasBackend(String backendName) {
         return backends.containsKey(backendName);
+    }
+
+    public List<BackendDescriptor> backends() {
+        return new TreeMap<>(backendLabels).entrySet().stream()
+                .filter(entry -> backends.containsKey(entry.getKey()))
+                .map(entry -> new BackendDescriptor(entry.getKey(), entry.getValue()))
+                .toList();
     }
 
     public PromptResult submit(String backendName, String prompt) {
@@ -112,5 +134,10 @@ public final class PromptService {
             return commandBackedBackend.commandFor(request);
         }
         return List.of();
+    }
+
+    private static Map<String, String> backendIdsAsLabels(Map<String, AiBackend> backends) {
+        Objects.requireNonNull(backends, "backends");
+        return backends.keySet().stream().collect(java.util.stream.Collectors.toMap(id -> id, id -> id));
     }
 }

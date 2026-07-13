@@ -7,6 +7,8 @@ import myclaw.execution.CommandResult;
 
 public sealed abstract class AiBackendException extends RuntimeException
         permits AiBackendStartupException, AiBackendExecutionException, AiBackendUnsupportedRequestException {
+    private static final long serialVersionUID = 1L;
+
     private final BackendId backendId;
 
     AiBackendException(String message, BackendId backendId) {

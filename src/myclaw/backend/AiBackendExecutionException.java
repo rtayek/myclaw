@@ -6,6 +6,8 @@ import java.util.Optional;
 import myclaw.execution.CommandResult;
 
 public final class AiBackendExecutionException extends AiBackendException {
+    private static final long serialVersionUID = 1L;
+
     private final CommandResult commandResult;
 
     public AiBackendExecutionException(String message, BackendId backendId, CommandResult commandResult) {

@@ -74,6 +74,8 @@ public final class HarnessMainApplication {
 }
 
 final class PromptInputException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
+
     PromptInputException(String message) {
         super(message);
     }

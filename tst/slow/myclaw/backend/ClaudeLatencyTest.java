@@ -5,8 +5,6 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 
-import myclaw.backend.AiRequest;
-import myclaw.backend.ClaudeCliBackend;
 import myclaw.execution.CommandRunner;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;

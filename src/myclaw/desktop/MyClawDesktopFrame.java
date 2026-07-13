@@ -52,6 +52,8 @@ import myclaw.application.PromptResult;
 import myclaw.application.PromptService;
 
 final class MyClawDesktopFrame extends JFrame {
+    private static final long serialVersionUID = 1L;
+
     private static final List<BackendChoice> BACKEND_CHOICES = List.of(
             new BackendChoice("claude", "Claude"),
             new BackendChoice("glm", "GLM")

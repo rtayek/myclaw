@@ -1,6 +1,8 @@
 package myclaw.execution;
 
 public final class CommandExecutionException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
+
     public CommandExecutionException(String message, Throwable cause) {
         super(message, cause);
     }
