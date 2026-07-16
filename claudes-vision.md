@@ -3,16 +3,24 @@
 ## One sentence
 
 Manifold Switchboard is an AI cockpit you can use without seeing well
-or typing well, that remembers everything you have ever asked — and
-grows into a permanent, provider-independent library of your work
-with AI.
+or typing well, that preserves every conversation you hold through it
+— completely, permanently, in a format you own.
 
 ## The problem
 
 AI interfaces assume sharp eyes and fast hands: small text,
 mouse-driven layouts, silent responses. And the work itself is
-scattered — decisions, explanations, and code spread across
-providers, tools, and devices, hard to find again and easy to lose.
+scattered across providers who guard it: no API reaches your chat
+history, exports are manual, lossy, and getting harder to come by.
+What you made with AI is not, today, yours.
+
+## The promise
+
+Every conversation held through Manifold Switchboard is captured at
+the moment it happens, at full fidelity, on your own machine. No
+export, no permission, no vendor cooperation required. Own your
+conversations on the way in, because getting them back out later is
+only going to get harder.
 
 ## The product, in two stages
 
@@ -23,29 +31,29 @@ One accessible desktop app that talks to many AIs:
 - Claude, local Ollama models, and other backends in one interface,
   switchable by keystroke.
 - Large, scalable text everywhere.
-- Full keyboard navigation; the mouse is optional.
+- Keyboard, voice, touch, and mouse — any of them alone is enough.
 - Speech in: prompt by dictation.
 - Speech out: responses read aloud.
 - Copyable, readable errors. No information trapped in a dialog.
-- Every conversation saved on your own machine with provenance:
-  which AI, which model, when. Nothing leaves your computer except
-  the prompts you send.
+- Every conversation saved locally with provenance — which AI, which
+  model, when — and reopenable the next day. Nothing leaves your
+  computer except the prompts you send.
 
 ### Stage two: the library
 
-The cockpit's daily use builds a collection. The library makes it
+Daily use of the cockpit builds a collection. The library makes it
 durable and useful:
 
 - Search across every conversation, regardless of which AI answered.
 - Organize conversations by project.
-- Reopen and reuse any conversation without the original provider.
 - Export readable or structured records.
 - Generate concise handoffs for continuing work with another AI.
-- Import conversations from other providers into the same library.
+- Last, and only best-effort: import old conversations from provider
+  exports. Forward capture is the foundation; import is a courtesy
+  to history.
 
-Stage two features are built only as the accumulating collection
-makes them necessary. The transcript format carries provenance from
-day one so the library never needs a migration to exist.
+The transcript format carries provenance from day one, so the
+library never needs a migration to exist.
 
 ## Who it is for
 
@@ -56,8 +64,9 @@ built from lived experience, not a compliance checklist.
 
 ## First milestone
 
-The developer runs Manifold Switchboard daily and a response can be
-read aloud with one keystroke.
+The developer runs Manifold Switchboard daily; a response can be
+read aloud with one keystroke; yesterday's conversation can be
+reopened today.
 
 ## What success looks like
 
@@ -76,3 +85,5 @@ comes first.
   speaking, it is not done.
 - Every saved conversation belongs to the user, on the user's
   machine, in a format the user can read without us.
+- The library is only as complete as the cockpit is pleasant. Making
+  people want to live here is a data-integrity feature.
