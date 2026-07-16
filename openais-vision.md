@@ -4,11 +4,11 @@
 
 Manifold will begin as an accessible AI cockpit and grow into a durable, provider-independent library for a person’s work with AI.
 
-The first purpose is simple: make it easier to talk with different AI systems through one clear desktop interface designed for large text, keyboard control, touch, dictation, and spoken responses.
+Its first purpose is simple: make it easier to use different AI systems through one clear desktop interface designed for large text, keyboard control, touch, dictation, and spoken responses.
 
-Every conversation will be preserved locally from the beginning.
+Every conversation handled through Manifold will be preserved locally as completely as Manifold can observe it. Imported conversations will be preserved as completely as their source permits, with their origin, acquisition method, and known limitations recorded.
 
-As Manifold grows, those conversations will become part of a common library that can also import existing chats from other providers, organize work by project, search across conversations, preserve provenance, and export information in readable or structured forms.
+As Manifold grows, these conversations will become part of a common library that can organize work by project, search across conversations, preserve provenance, and export information in readable or structured forms.
 
 ## Product Direction
 
@@ -17,9 +17,10 @@ Manifold should provide:
 * one accessible interface for several AI backends;
 * keyboard, touch, voice, mouse, and trackpad interaction;
 * large scalable text and reliable speech output;
-* local preservation of every conversation;
+* local preservation of conversations and source artifacts;
+* explicit provenance and preservation fidelity;
 * project organization and search;
-* import of existing conversations;
+* import of existing conversations in whatever forms providers make available;
 * provider-independent storage and export;
 * concise handoffs for continuing work with another AI.
 
@@ -33,11 +34,13 @@ The first useful version should be practical for daily use.
 
 A user should be able to choose an AI, enter a prompt by typing or speaking, read or hear the response, and reopen the preserved conversation later.
 
-The system should store those conversations through a common local model so that search, import, organization, and interchange can be added without replacing the foundation.
+The system should store the complete observable conversation through a common local model. Imported material should remain distinguishable from native capture, with the original artifact preserved unchanged whenever possible.
 
-## Guiding Principle
+## Guiding Principles
 
 If an essential function cannot be performed through large readable text, keyboard, touch, or voice, it is incomplete.
+
+Manifold should never claim that an imported conversation is complete unless the source establishes that. It should preserve what it receives, record what is known, and identify what may be missing.
 
 ## Success
 
