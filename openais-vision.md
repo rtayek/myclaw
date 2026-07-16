@@ -2,38 +2,45 @@
 
 ## Vision
 
-Manifold will give people durable ownership and control of their work with AI.
+Manifold will begin as an accessible AI cockpit and grow into a durable, provider-independent library for a person’s work with AI.
 
-AI conversations are often scattered across providers, tools, projects, and devices. Important decisions, explanations, code, and context can become difficult to find, preserve, or reuse.
+The first purpose is simple: make it easier to talk with different AI systems through one clear desktop interface designed for large text, keyboard control, touch, dictation, and spoken responses.
 
-Manifold will provide one local, accessible library for managing AI conversations independent of any single provider.
+Every conversation will be preserved locally from the beginning.
 
-## What Manifold Does
+As Manifold grows, those conversations will become part of a common library that can also import existing chats from other providers, organize work by project, search across conversations, preserve provenance, and export information in readable or structured forms.
 
-Conversations can enter Manifold by import or live capture.
+## Product Direction
 
-Manifold will:
+Manifold should provide:
 
-* preserve source data and provenance;
-* normalize conversations into a common format;
-* organize them by project;
-* search across their contents;
-* reopen them without the original provider;
-* export readable or structured records;
-* create concise handoffs for continuing work with another AI.
+* one accessible interface for several AI backends;
+* keyboard, touch, voice, mouse, and trackpad interaction;
+* large scalable text and reliable speech output;
+* local preservation of every conversation;
+* project organization and search;
+* import of existing conversations;
+* provider-independent storage and export;
+* concise handoffs for continuing work with another AI.
 
-## Accessibility
+The accessible cockpit is the first product.
 
-Accessibility will be a defining product quality.
+The conversation library is the foundation that allows it to become more useful over time.
 
-Core functions should work through keyboard, touch, voice, mouse, or trackpad. The interface should support large fonts, high display scaling, high contrast, predictable focus, uncluttered layouts, copyable errors, detachable windows, and reliable multi-monitor restoration.
+## First Goal
 
-## First Product Goal
+The first useful version should be practical for daily use.
 
-The first useful version should prove that one imported conversation and one newly captured conversation can coexist in the same provider-independent local library.
+A user should be able to choose an AI, enter a prompt by typing or speaking, read or hear the response, and reopen the preserved conversation later.
 
-Both should preserve provenance, support project organization and search, reopen without the original provider, and export cleanly.
+The system should store those conversations through a common local model so that search, import, organization, and interchange can be added without replacing the foundation.
 
-## Success Criterion
+## Guiding Principle
 
-Manifold succeeds if it makes large collections of AI conversations easier to own, find, understand, move, and reuse.
+If an essential function cannot be performed through large readable text, keyboard, touch, or voice, it is incomplete.
+
+## Success
+
+Manifold succeeds first when it becomes a genuinely useful accessible AI cockpit.
+
+It succeeds in the longer term when it gives people lasting ownership, understanding, and control of their work across many AI systems.
