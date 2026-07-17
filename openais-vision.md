@@ -16,15 +16,17 @@ Manifold should provide:
 
 * one accessible interface for several AI backends;
 * keyboard, touch, voice, mouse, and trackpad interaction;
-* large scalable text, reliable speech output, and copyable errors;
+* large scalable text, reliable speech output, and truthful plain-language errors that can be read aloud, copied, and expanded to show technical detail;
 * local preservation of conversations and source artifacts;
-* explicit provenance and preservation fidelity;
+* explicit provenance, including provider, model, time, relevant settings when known, acquisition method, and preservation fidelity;
 * project organization and cross-provider search;
-* import of existing conversations in whatever forms providers make available;
+* best-effort import of existing conversations in whatever forms providers make available;
 * provider-independent storage and export;
 * concise handoffs for continuing work with another AI.
 
 The accessible cockpit is the first product. Daily use of that cockpit builds the collection.
+
+Reliable forward capture is foundational. Importing older conversations is valuable but secondary and necessarily limited by what their sources expose.
 
 The conversation library is the foundation that makes the collection durable, searchable, portable, and increasingly useful over time.
 
@@ -44,7 +46,7 @@ Every saved conversation should belong to the user, remain on the user’s machi
 
 Manifold should never claim that an imported conversation is complete unless the source establishes that. It should preserve what it receives, record what is known, and identify what may be missing.
 
-Personal state and AI-generated interpretations should be visible, distinguishable from source records, editable, exportable, and deletable by the user.
+Personal state and AI-generated interpretations should be visible, distinguishable from source records, editable, exportable, and deletable by the user. Owning data includes the right to erase it, not merely to keep it.
 
 Privacy and capability controls should be explicit and enforced by the system, not merely suggested by the interface.
 
