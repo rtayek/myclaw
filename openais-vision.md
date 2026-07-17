@@ -44,6 +44,10 @@ Every saved conversation should belong to the user, remain on the user’s machi
 
 Manifold should never claim that an imported conversation is complete unless the source establishes that. It should preserve what it receives, record what is known, and identify what may be missing.
 
+Personal state and AI-generated interpretations should be visible, distinguishable from source records, editable, exportable, and deletable by the user.
+
+Privacy and capability controls should be explicit and enforced by the system, not merely suggested by the interface.
+
 The cockpit must be pleasant and reliable enough for daily use. A library is only as complete as the conversations people choose to conduct through it.
 
 ## Success
