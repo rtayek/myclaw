@@ -87,6 +87,7 @@ abstractions keep those doors open; the accessible desktop comes first.
 - Never claim an imported conversation is complete unless the source
   proves it: preserve what arrives, record what's known, flag what's
   missing.
+- The client should not need to know whether a backend uses a local process, local HTTP service, socket, remote server, or cloud API.
 - Everything the app stores about you, you can inspect, correct,
   export, or delete. Owning your data means the right to erase it, not
   only to keep it.

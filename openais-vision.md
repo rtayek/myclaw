@@ -55,6 +55,8 @@ If an essential function cannot be performed through large readable text, keyboa
 
 Every saved conversation should belong to the user, remain on the user’s machine, and be readable in a standard form without requiring Manifold.
 
+The client should not need to know whether a backend uses a local process, local HTTP service, socket, remote server, or cloud API.
+
 Manifold should never claim that an imported conversation is complete unless the source establishes that. It should preserve what it receives, record what is known, and identify what may be missing.
 
 Personal state and AI-generated interpretations should be visible, distinguishable from source records, editable, exportable, and deletable by the user. Owning data includes the right to erase it, not merely to keep it.
