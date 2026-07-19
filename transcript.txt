@@ -1,0 +1,1189 @@
+AI’s Next Race: Cost, Control, and Compute
+CNBC
+62,735 views  Jul 10, 2026  #CNBC
+The AI race is shifting from who has the biggest model to who can run, control and deploy AI most effectively.
+
+Perplexity CEO Aravind Srinivas joins to discuss the company’s new orchestrator model, why he’s building on open-source Chinese AI, and his argument that “token value per watt” may decide the next phase of competition.
+
+Then, Benchmark general partner Peter Fenton and Ollama CEO Jeff Morgan discuss the rise of open models, why enterprises are increasingly running models they can download and control, and what Ollama’s growth says about where the AI ecosystem is heading.
+
+Together, the conversations get at one big question: in AI’s next race, will the winners be defined less by model access and more by cost, control and compute?
+
+#CNBC
+
+Transcript
+0:00
+AI is entering its postfrontier era where the model is no longer the whole product. [music] The value will be in
+0:06
+routing cost control and compute and openw weight models. They may start to squeeze [music] the frontier labs. The
+0:13
+model alone is no longer the product. It is the harness. [music] 90 plus% of the tokens created will come
+0:20
+out of openw weight models over the next 18 to 24 months, possibly even by the end of the year. You know, the average
+0:25
+Fortune 500 business may have thousands of internal applications and [music] they're modernizing all these with AI.
+0:31
+And for that to truly be productive and in the best interest of the business, [music] it's to use open models.
+0:37
+If you want the benefits of AI to be widely distributed, then you really need AI to be a lot more affordable.
+0:43
+The idea of developers empowered is what fuels our industry. [music] And we
+0:48
+resist uh early oligarchs igopies. This is the open model squeeze. Cheaper
+0:54
+models, more control, and a real challenge to the idea that a few frontier labs will own the [music] AI
+1:00
+stack. The full conversation is here.
+1:09
+For the last couple of years, the AI race had a pretty clean scorecard. Bigger models, better benchmarks, more
+1:15
+GPUs, the right to claim, the right claim to the frontier, at least until the next launch. Now, that became the
+1:21
+easiest way to understand the boom. Open AI would ship. Anthropic would answer. Google would close the gap. Maybe a
+1:27
+Chinese lab comes out with something surprising. And everyone recalculates where they stand. That scoreboard
+1:32
+though, it's getting a lot more complicated. The frontiers still matter. Certainly, OpenAI releasing GBT56,
+1:38
+Chinese Labs, they're shipping competitive models at a pace that is hard to ignore. But companies, they're
+1:44
+now far enough into actually using AI that the conversation is moving from model rankings to deployment reality
+1:52
+where cost control, where their data is actually going, it matters a lot more. And increasingly customers, they're not
+1:58
+waiting for the labs to tell them which model is best. Door Dash, the food delivery platform, it had a good example
+2:04
+of that this week. Instead of relying on public benchmarks or model launch
+2:09
+claims, Door Dash built its own test for AI code review using its own codebase,
+2:14
+its own pull requests, and its real engineering problems. The result was a pretty good snapshot of where AI is
+2:21
+right now. No single model won everything. A basic one pass AI reviewer missed a lot. The better answer was a
+2:28
+system, multiple models, different roles orchestrated around the actual job that
+2:33
+Door Dash needed done. And this is really an incredible reversal and maybe a sign of what is to come for more
+2:38
+companies. I had a few people reach out when I was talking about this like G2 Patel, president over at Cisco, who said
+2:44
+this has already been happening for months. Public benchmarks, they don't always map to real world results. For
+2:51
+years, this is interesting because for years the labs benchmark the models and the rest of the market reacted. But now
+2:56
+the customers, they're the ones benchmarking the labs. Once companies do that, they don't have to take anyone's
+3:02
+word for anything. they can decide which model works for them. Now, Perplexity is coming at the same shift from another
+3:08
+side. This week, it previewed a new system for its AI browser and computer product that starts with a cheaper open
+3:15
+model from China's ZAI, also known as GPU, then calls in a stronger, more expensive model only when the task needs
+3:22
+it. And an analogy that many people are using these days, you don't use a Ferrari to go to the grocery store. Now,
+3:28
+both moves, they point to the same bigger idea. The product is no longer just the model. It is the system around
+3:36
+the model. And that's why this next phase of AI might look different from the last few. The postfrontier era is
+3:43
+what we're going to call it. Today, Perplexity CEO R. Vancas joins us to talk about the company's new orchestrator model, why he's building on
+3:50
+open-source Chinese AI, and his argument that token value per watt may become one
+3:55
+of the defining metrics of the next phase. I also spoke with benchmarks Peter Fenton and Oblama CEO Jeff Morgan
+4:01
+a few hours ago. We're going to run that conversation in full later on in the show. Peter made a striking prediction
+4:06
+that you're going to want to stick around for. He said that over the next 18 to 24 months, maybe even by the end
+4:11
+of this year, more than 90% of tokens could come from openweight models. That's a huge claim that also explains
+4:18
+why Benchmark was an early investor in Olama. This is a company making it easier for developers and enterprises to
+4:23
+download, run, and manage open models. Let's get into it all. First up with Arvin. Arvin, it is great to see you.
+4:30
+Thank you for joining. I always say that you were kind of Perplexity was the OG model router. You have seen this shift
+4:36
+from the very beginning. What is it like right now? Did you expect sort of everyone to jump on model routing this
+4:44
+quickly and this kind of momentum that we've seen this year?
+4:49
+I think the uh importance of model routing definitely increased exponentially since the advent of agent
+4:56
+harnesses. Um our positioning with the perplexity computer product which is
+5:01
+essentially an agent harness is that one model alone is never going to be good at
+5:06
+all things. This was actually told by anthropic CEO Dario himself that models
+5:12
+are actually a lot more differentiated than cloud. Clouds are actually pretty undifferiated and different models are
+5:18
+pretty good at different capabilities at different cost performance trade-offs and so uh the value of orchestration and
+5:24
+model routing uh automatically increases as models starts specializing in different kinds of capabilities and so
+5:32
+many different enterprises even within an enterprise different teams within an enterprise and across enterprises
+5:37
+different companies have so many different kind of capabilities that they want out of AI and so um the the the the
+5:44
+leader in any category keeps changing pretty fast and uh it's so hard to keep up in terms of how the public benchmarks
+5:51
+they release actually translate to real value for your use cases and what your
+5:56
+customers want and so the value actually lies in every company having their own eval harness model and loop to iterate
+6:06
+on this right so that that there in lies the value that that's how you can throw your own tacet knowledge that your
+6:12
+company and your customers have into a platform that you can control and bring
+6:17
+down the costs and see the ROI on the AI spend instead of being uh worried about
+6:22
+token maxing and not knowing exactly what to do with it, right? It's not just like better models
+6:28
+for better tasks or cheaper models for cheaper tasks. It's more complicated than that, which is I think what you're saying. You need to use the
+6:34
+There's another way of saying this, which is the model alone is no longer the product. It is the harness, the
+6:40
+orchestration system that puts the model inside a very capable harness and pairs the model with a lot of tools.
+6:47
+The tools could be bringing in valuable context that exists within your enterprise uniquely that allows you to
+6:54
+serve unique value to your customers. So that is essentially the product and
+6:59
+whatever allows you to serve the best performance cost trade-offs here is what you should be optimizing for rather than
+7:05
+uh how many tokens your engineers are spending. Right. And I think we're totally aligned there. It's no longer just the product.
+7:12
+Things like cost, control, compute matter. I want to dig into all of those. But first, when you said that, you know,
+7:17
+Dario Amode, the CEO of Anthropic said he saw this coming. He acknowledged that
+7:23
+you wouldn't just use one model for everything. Do you think that was in a different environment? Do you think he expected did you expect sort of the
+7:29
+explosion and the competitiveness of these open source Chinese models?
+7:35
+I think it was obviously like you know on the horizon and um I think we've had a conversation about this maybe one or
+7:41
+two years before this where you you you asked me whether it was predicted that
+7:46
+deepseate would catch up with 03 and then I made a prediction at that time that yes they'll catch up but then the
+7:52
+frontier will again make progress and then this will keep going for a while and uh that's basically what ended up
+7:58
+happening. Um there was a point of time when people thought Opus was too too far ahead to catch up with. Uh now you know
+8:05
+you've seen multiple different model makers saying they caught up with it at a fraction of the cost. Um and so that
+8:11
+that's basically uh very important and Perplexity is is the only company that can claim to actually benefit from uh
+8:18
+competition at all layers of the AI stack and also contribute to all layers of the AI stack. So when open models
+8:24
+make progress, it's actually amazing for for for us. And when frontier models make progress with between each other,
+8:31
+competing with between each other in terms of offering maximum intelligence for the lowest cost, uh we're the
+8:37
+benefits of that flow the most to a company like us that is able to orchestrate uh whatever they do to the
+8:44
+customer with minimum cost for maximum performance. Uh which is what I meant when I said maximum token value per watt
+8:50
+per user. Because at the end of the day if data center buildout is bottleneck by power uh what really matters is you
+8:56
+provide the ROI on token spend with minimal power consumed and um and so that's where our positioning is unique
+9:03
+and that's also why we are engaging in post training that is also unique to just like fine-tuning on a corpus of
+9:09
+data. Instead, the specific form of post training that we are working on is to embed the skill inside the open source
+9:16
+model uh to escalate to the frontier model which could serve as an advisor model to the open source model and do
+9:24
+that uh with a specific agent harness that allows you to serve production workloads for knowledge work. If you
+9:30
+handle this, if you do that, you never have to be worried about like whether to use open source models or frontier
+9:36
+models. The answer is always use whatever is the best for the task and embed that routing skill deeply inside
+9:42
+the model weights itself instead of building like standalone routers that have no knowledge of what the model is
+9:47
+capable of inside the agent harness. So this is actually the biggest paradigm shift. The model is alone is no longer
+9:54
+important. the uh it's very important to view the model in the harness uh in a vertically integrated fashion and the
+10:01
+frontier model itself would serve as a sub agent or a tool inside the harness
+10:06
+and that allows you to imagine so many different forms of inference compute in paradigms including the entire
+10:12
+orchestrator model and the harness running on a local device that you own and control and don't have to pay for
+10:18
+any token that's consumed on that device and so there are so many different forms of imagining this with hybrid compute so
+10:24
+That's what like we are very excited about and Nvidia has this amazing architecture of DGX Spark that puts the
+10:31
+GP10 GPU chip with unified memory on like one local device and that's going to allow you to serve like really
+10:37
+efficient local models that orchestrate frontier models on the server and at the same time like you can also imagine
+10:43
+serving uh much more efficient models like GLM as the core orchestrator and
+10:48
+still have them uh escalate to an adviser like Opus 5 or you know GPD56
+10:54
+whenever necessary. That's that that so that you you want to position uh the product and the platform in a win-win
+11:00
+fashion between open source and Frontier and not be caught up in this sort of like debates about like what's actually
+11:05
+going to win, right? And I feel like over the last few weeks as Wall Street and enterprise pays
+11:12
+more attention to open source models, the line has been okay, this is how you do it cheaper. But when I was talking to
+11:17
+Peter Fenton and Jeff Morgan earlier today, we're going to run that full interview. Um Peter said something
+11:22
+really interesting. It's not necessarily cheaper. Sometimes like a GLM will be better for the task, not just cheaper.
+11:29
+And that is something sort of that I learned. Do you think that back to your prediction a few years ago, which was
+11:35
+incredibly precient? Do you still think that there's the same gap between the frontier and Chinese
+11:43
+open source models, or has that been narrowing? Is it three to six months as someone else told me? I think it's fair
+11:49
+to say I think it's fair to say the gap's like six months maybe um that's I mean
+11:54
+obviously it's a ballpark estimate but um maybe it's going to take another six months for them to produce a model
+12:00
+that's as good as MTOS or Fable um or or GPD 5. Will the labs always
+12:06
+will the labs always be six months ahead or do you think that as time goes on like three years from now what does that
+12:12
+gap look like? Uh to me it doesn't feel like we're hitting the limits of scaling. Um I feel
+12:18
+like the GB uh GB300 paradigm of training models has just started and so
+12:24
+uh we're going to benefit see advances from um models that have been post-trained on top of even larger
+12:30
+pre-trains that have been pre-trained on GB300 chips. And so uh I I do expect
+12:36
+both Frontier models and open source models to keep making progress um in a similar fashion for the next year or
+12:41
+two. And um I think it almost doesn't matter because what really matters is
+12:46
+taking all these capabilities and grounding them in the context that will power small businesses and enterprises
+12:53
+and letting them own the harness eval loop. There's so much work to be done on the deployment side that even if the
+12:58
+capabilities actually stop advancing and open source and frontier stay at the same level, there's so much work to do
+13:05
+on the deployment and orchestration side which is what like we want to focus on and like deliver value. But um just
+13:11
+purely as a from an intellectual prediction standpoint like I do expect like more progress to happen on both
+13:16
+sides both open source and frontier uh it's possible that the gap could shrink from 6 months to even you know a
+13:22
+month or two or it's possible that there may be no gap at all u but nothing is
+13:28
+technically free right you still have to serve it on like GPUs on server which is why we're excited about like hybrid
+13:33
+compute as well where some of the token spend can actually go towards local models on devices you own Right. And
+13:40
+this new sort of um metric that you're calling intelligence per watt. I want to get into that a little bit because I
+13:46
+want to expand this out too from just like a purely AI or tech company conversation. Why should other companies
+13:53
+that are not in tech? How should they think about hosting their own models? Um
+13:59
+who is Nvidia Spark for? Is it for a consumer, a developer? Is it for the enterprise as well?
+14:06
+everybody u enterprises, consumers, proumers, small businesses um you want
+14:11
+the AI value to diffuse to the society in in a wide way right like uh people are obviously annoyed and um almost to
+14:19
+the extent of like for example I don't know if you saw the news about this bacteria thing in the seas I don't know
+14:25
+how true it is that it was caused by the metadata center but in general the public perception of AI is so negative
+14:31
+and so you're not going to do any good if AI is just locked up in frontier labs in a to large companies that can afford
+14:37
+to pay for inference for these tokens. It needs to diffuse and the only way for it to diffuse in a wide way is people
+14:43
+should be able to control where it runs, what model they run, what knowledge it has access to and shouldn't necessarily
+14:51
+be worried about it getting shut down because some model gets pulled off from uh the data center or the data center
+14:56
+gets attacked in some manner. Um and so that that's that's a problem that local compute solves. It allows you to have
+15:03
+the freedom and and cost control and the flexibility and sovereignty. And DGX
+15:08
+Spark is such an amazing piece of hardware because it unifies the memory across the CPU and the GPU inside that
+15:14
+local device unlike a data center where the memory between the CPU and the GPU are not unified. So most of the power
+15:21
+bottlenecks is because of constantly having to move data around. If that problem is solved in a specialized way
+15:27
+for a local device, then it's a lot more power efficient. it can run in few hundred watts and that's honestly like
+15:34
+the only way to scale a lot of token spend across people without having to build more data centers
+15:39
+and uh and that's why I'm very excited about that and u the models are getting there like a quen 35B can actually be
+15:46
+pretty efficient at running local workloads and if you train it with a post- trainining strategy that perplexity is
+15:53
+adopting to be able to escalate to a frontier model on the server you get a win-win situation where whenever it
+15:59
+feels like it can accomplish the task of the user, it can still use a frontier model as a remote tool through the local
+16:06
+device, through the local harness. And uh that's like a different paradigm from what's happening today. And uh it's
+16:13
+going to completely change the landscape of how people spend tokens. Let me make sure I'm understanding this
+16:18
+as well. Arvin, are you saying that if more developers, companies, governments, etc. do sort of let's call it like
+16:25
+deskside computing or local computing, you don't need as big of an infrastructure buildout. Is that what
+16:31
+you're saying? Not not not not as much as you do today.
+16:36
+Definitely because um that's really interesting. What what is one thing you you hear all the time when people ask why is AI not
+16:43
+like why are you not making more revenue? They they say that they don't have enough compute. Okay. Then you ask
+16:49
+the question why don't you have enough compute? then say we don't have enough power.
+16:54
+Okay. Like so clearly a power bottleneck. So what is a lot more power efficient solutions to use the power we
+17:00
+all have at home all the time and build something more power efficient architecturally at the chip level with
+17:07
+unified memory across the GPU and the CPU which DGXR clearly solves.
+17:13
+that I can I can imagine talking to like the CFO of a non- tech company though
+17:20
+and saying that just sounds too complicated. We don't want the risk of hosting our own compute. What do you say
+17:27
+to them? And then the second question actually are we building too much?
+17:33
+Okay. Well, you're not actually hosting a data center. Uh you're it's it's like buying a PC for each of your employees. Why is
+17:40
+that risky? You can still ad you can still have admin control over each of those PCs just like how it's being done
+17:46
+on Microsoft server across enterprises. Large banks do that all the time. All
+17:52
+all the PCs they give to each employee is still centralized through admin controls. You can do all that stuff with
+17:58
+uh DGX parks on every desk. No problem there. Right. That's really interesting. That's an interesting analogy um that makes it
+18:06
+sort of more tangible or understandable maybe. So, AI is the new computer.
+18:11
+PCs are like outdated and legacy. Like they're just display monitors. Like you can actually have a DGX park
+18:18
+with a Dell display monitor and not have to use Windows at all because most of the windows remotely
+18:26
+too. You just use it through connectors. Yeah. The agents would use Excel and
+18:31
+PowerPoint and Word um through connectors inside an agent harness like
+18:36
+computer perplexity computer and you just delegate tasks to that and so the
+18:43
+compute runtime becomes the computer more than the OS itself. AI becomes the operating system that's what we want to
+18:50
+realize through perplexity computer. So then the whole enterprise landscape changes entirely. People start doing
+18:56
+work through AIs rather than doing it manually. and the local compute becomes your
+19:02
+computer that your an enterprise buys for every desk. So this thesis part of it rests on local
+19:10
+compute and the other part of this is open source models or openw weightight models right you have to have the ability to actually download and put
+19:16
+that on the system um I know that you built your latest orchestrator based on
+19:21
+GLM52 can you explain why GLM was the right model for you
+19:26
+so GLM 52 post train is what we're doing on the server side not not on local but it's a pretty efficient model 700
+19:33
+billion parameters in total um and approximately 40 40 billion active. I could be wrong on this number
+19:40
+exactly but roughly around that and um it's um almost an opus grade. It's
+19:45
+definitely a sonnet grade model and with post training and pairing with an advisor tool, it is opus grade at
+19:51
+one/ird of the cost. So and and unlike a lot of models that get published that claim to be opus grade uh but only good
+19:58
+on certain benchmarks that have been academically like like hill climbed on uh GLM actually generalizes pretty well
+20:04
+to like lot of production grade tasks. So it's such an incredible model that the company has trained Z AI uh and we
+20:11
+you know congrats to them and we took that model we post trained it on task that our customers care about in our
+20:16
+product and our agent harness and then deployed it in production today and have lowered the cost like one-third to what
+20:23
+we're paying Opus and every enterprise should do this and every enterprise is going to do this like every enterprise is going to create
+20:29
+a bunch of evals that they care about that their customers care about that's relevant to their business and and
+20:35
+harness harness will be purpose-built for that those eval uh trained to be good inside that
+20:42
+harness uh measured on those evals and then uh deployed on production. This is going to be a flywheel. So once it's
+20:49
+deployed, you're going to collect more data and keep improving iteratively and you're going to own and control the cost of intelligence and deployment yourself.
+20:56
+And that's the future. That's how the ecosystem actually expands. That's why I found that Door Dash story
+21:02
+and I'm sure so interesting. I'm sure Perplexity does something similar. Um, it feels like only a matter of time when
+21:08
+companies are going to have their own benchmarks because, you know, we've always said that the public benchmarks
+21:13
+or the traditional ones, you can benchmark max, they don't necessarily relate to your own company, but it's
+21:18
+hard to trust them. Yeah. Yeah. And I know we've we've been talking about this for years, Arand, how the Chinese models when you download
+21:25
+them, they're secure because they live on your own servers. But I feel like that is still something that's a little
+21:30
+bit misunderstood or maybe you know, companies are still a little bit skeptical of. Do you worry about um how
+21:38
+that's perceived and also like we've seen how Washington can see these things
+21:43
+sort of black and white, not very nuanced. Are you worried about any backlash towards um these Chinese
+21:49
+models, especially as they gain so much adoption and maybe take market share away from American labs?
+21:54
+I'm not worried about it. I think Nvidia will take care of it for America and uh Neimatron 3 Ultra is pretty close to the
+22:01
+quality of these Chinese models and you know give it like two or three more generations of pre-trains and post
+22:08
+trains and they're going to get there and we're working with them on the post- training side as part of the Neatron
+22:13
+coalition. Uh and um and so I can totally see a version of Neatron um
+22:21
+either 3 Ultra or the next model that will be as good for American open source. And here's the thing like uh the
+22:27
+open source model doesn't ha have to be like sonnet 5 or fable five level right
+22:34
+it just actually even has to match sonnet 4 six and you it's pretty clear that if you
+22:39
+have that capability you can post train it inside a harness um pair it with an advisor tool and make it as good as um
+22:47
+opus or sonnet fi uh with a fractional cost. So, and and I think I'm pretty
+22:53
+confident that like it'll get there. So, even if there's a situation where the Frontier Labs lobby uh Washington DC to
+23:01
+ban the use of uh Chinese open source models in America, um Nvidia is probably going to be very well positioned to take
+23:07
+care of that. Is it risky to put all of our hopes onto Nvidia? You know, especially when China
+23:13
+has so many different AI labs working on open source. Um, and I guess I'm also wondering whether Washington should be
+23:21
+thinking about open source as, you know, strategic infrastructure. We talk all the time about chips and data centers as
+23:27
+national priorities, but if open models are how developers, companies, governments, how they actually get to
+23:33
+build with AI, do you think that the US should be doing more to support that ecosystem as well?
+23:39
+I think so. That's my opinion. Um it's and Jensen made these points in some
+23:45
+interview recently that um when a company when when a country has a lot more power than America like actual
+23:52
+incremental power generated per year in the grid uh it's actually good for us if
+23:57
+they build on our chips and our ecosystem and so it's better to be more open than closed and uh compete on
+24:04
+capabilities rather than export controls. So that's my bu my my opinion is that and I I also feel like most of
+24:11
+the capabilities that feel scary are stuff that you can build guard rails to fast enough if it's done in a more open
+24:17
+manner and uh in general like all the software we take for granted today uh
+24:23
+Linux particularly every whoever is using an Android phone is basically thank should be thankful to the fact
+24:28
+that Linux exists and um that and and and nobody's worrying about security on
+24:34
+their phones. because um even though it's open source software because Android and Linux are both open source
+24:40
+and that allows people to patch vulnerabilities pretty fast and the same kind of capabilities can be made
+24:47
+possible if they're open weights and people can post train it to be like u pretty good in terms of cyber security
+24:53
+defenses. It feels like when we talk about Washington and regulation, it feels very
+24:59
+defensive when it comes to open source. Like what happens if we ban or restrict Chinese open source models over here?
+25:06
+What about the idea of going on the offensive? If you were talking to lawmakers, what are some of the ideas
+25:12
+you might float in terms of advocating or supporting or even investing in open
+25:17
+source? If you want the benefits of AI to be widely distributed to small businesses
+25:23
+in America and American allied countries, then you really need AI to be
+25:28
+a lot more affordable. And open source is the only way to do that because when the models are open weights and can be
+25:34
+served at the price of compute rather than the markups the labs charge on top, that's the only way uh small businesses
+25:42
+can afford that. And that's the only way the economy truly moves forward. So it is in America's interest to actually
+25:47
+support open source and open meets. How do you do that? Could there be more
+25:52
+investment in the university system? Do you think you know open AI is reportedly floating a stake for the government?
+25:58
+Should the government be taking stakes in Nvidia or Reflection AI if that helps those open source ambitions? What do you
+26:05
+think? I think Nvidia is doing the job of ensuring this is possible. Uh so the um
+26:11
+and as far as the the Chinese relationships go I actually think we should continue supporting um open
+26:18
+source models using them here and um competing with them on open source arena like and I think that's the competition
+26:24
+is good like the best things usually happen when multiple amazing people compete with each other and um and then
+26:31
+out of the competition uh affordability problem is solved and businesses can flourish and um there'll be a lot more
+26:38
+AI enabled businesses business going forward and existing small businesses will actually be able to use AIS and uh
+26:45
+you know like make themselves a lot more efficient and go out and and a lot more entrepreneurship will automatically
+26:50
+flourish in America. I want to get to this question of data. We touched on it a little bit earlier um
+26:56
+but you're hearing more people come out like Alex Karp was a high-profile example. Um, Peter Fenton earlier today
+27:04
+was very blunt that enterprises should be careful about giving away the context and workflow data that makes their
+27:09
+businesses so valuable. Um, does that apply to consumer AI products as well?
+27:15
+And I mean you did give a good case an example of exactly how you can do that.
+27:20
+Um, but like do you agree with that louder faction now that you need to protect your data?
+27:27
+100%. I mean the value of any enterprise is in the unique proprietary tokens you
+27:32
+have. Um tacet knowledge is not even documented in the form of tokens that
+27:38
+you should figure out a way to somehow pass it on to like your agent harness loop. So uh it's actually not in your
+27:44
+interest to just rely on Frontier Labs. You have to have your own weights. You have to deploy it. You have to have your
+27:49
+harness and you have to have this loop to keep hill climbing on this. So you have to work with companies that
+27:55
+actually help you do this and be sovereign and and this applies to consumers too at the end of the day like
+28:01
+uh why do you want to remain um you know you you basically do you really want a
+28:08
+repeat of the internet future where uh like all our data just lies in the hands of two or three companies or do you want
+28:15
+a lot more control and privacy and sovereignty over that and that's what local AI enables for you once you set up
+28:21
+your own model inside it and give it access to everything including audio at home, um your like photos, whatever you
+28:28
+want, right? you're not worried about it because the data is not even stored inside a data center and um you could
+28:35
+imagine future applications like physical and robotics at home uh which actually need a high frame rate of
+28:41
+inference and can should probably be processing a lot of private data at your home. And do you really want that to be
+28:48
+streamed to a server and like some frontier models making decisions for you there and surveilling you or do you
+28:54
+actually want control and flexibility and like you know sovereignty and like have your own hardware that host local models. I I think there's like enough
+29:01
+people who want control and privacy and so uh and and it's less about just the
+29:07
+privacy argument. Uh the cost argument is like pretty favorable for people who don't even care that much about privacy.
+29:13
+And that's actually why I see a future where everyone's going to have some some form of like data center at their home.
+29:20
+Right. Um I want to get your take on something also I heard earlier Peter predicted that 90% plus of tokens could
+29:27
+come from openw weight models over the next 18 to 24 months. Um what do you
+29:33
+think? I think it be it could be amazing if that happens. I actually think what
+29:38
+matters more is the valuable tokens more than the number of tokens. For example,
+29:43
+like um AI search on Gemini probably serves a lot of tokens, but they're not
+29:49
+necessarily as valuable as agents doing real work for you. So, I think it's more important that uh
+29:55
+we figure out a way to make agent loops be run with open weight models. That's
+30:00
+actually where we should put a lot of energy into getting openweight models to be part of like most agent harnesses
+30:06
+that serve most workloads right now inside enterprises and that's how you can maximize the token value produced by
+30:13
+the output tokens from open weight models and um you know that that's the metric that I care more about rather
+30:18
+than the raw number of tokens and does that value to the frontier though I mean there is also this maybe
+30:26
+misconception that open models can't be monetized Okay, value should acrue to the user and
+30:33
+whichever company helps do that will win and so value acrewing to the frontier is
+30:41
+not necessarily aligned with value acrewing to the user or the business.
+30:46
+Right? So a business can only flourish if users actually benefit in a long-term
+30:52
+basis. If if the companies benefit more than the users, those companies are not long-term sustainable. the market forces
+31:00
+will automatically ensure that and and so u when we talk think about AI and like who's going to get the value like
+31:06
+fundamentally whoever maximizes the token value per watt per user will get the value and if the frontier is not in
+31:13
+alignment with that objective it's not going to obviously get the value how do you measure that value
+31:21
+um you measure that by cost performance curves
+31:26
+you want to you want to be on the to optimality there. Arvin, I know like Perplexity started as
+31:33
+a consumer AI company, but a lot of the things you're describing, you know, goes over to the enterprise as well. And like
+31:39
+I said, you were kind of like the original model router. Are you seeing that business grow? Um, are what are
+31:45
+companies asking you about open source and model routing and harnesses and orchestration? Do they understand it
+31:51
+fully yet? Even outside of tech, I think I think it obviously takes more
+31:56
+education to be clear. Like first of all, harness, eval, agent loops,
+32:02
+orchestration, sub aent, these are all like words that most people still don't fully understand. So it takes more education. So you have to simplify
+32:10
+things and there's a lot of value you can create in the economy by simplifying things. Um as for like this consumer
+32:16
+versus enterprise question I think there's a whole world where like there's a lot of small businesses and
+32:22
+entrepreneurs solopreneurs are using our products and in fact the way they
+32:27
+started using our business products our enterprise product is actually they were already consumer they were on the
+32:32
+consumer version and they were paying for it and they converted themselves into like teams and business uh owners
+32:38
+and now they're paying for it even more. The amount of money we make from a company with sub 10 employees is
+32:45
+sometimes even higher than companies where we've sold hundreds of seats. This is possible because uh even with a few
+32:51
+seats, people are spending a lot of tokens for valuable business workflows,
+32:56
+especially when they see the ROI. One particular customer, for example, uh their yearly revenue is around 3 million
+33:02
+a year. It's a single person company with three or four contractors and uh the spend on our enterprise computer
+33:09
+product is around $800,000 a year. So they're actually making that 2.2 million. And um you know like that's
+33:16
+pretty amazing if that business grows 10 times. um that amount of spend like around eight million a year from like
+33:23
+sub 10 people companies was never possible before and and that's why the SAS model is outdated and legacy and
+33:29
+like like what matters in AI is truly delivering output value for the tokens. If you can do that and help that
+33:35
+business flourish is probably a better thing for you to do focusing on those people than trying to sell to legacy
+33:41
+companies who don't even understand AI and who don't know what to do with it. And there's like a lot of small
+33:46
+businesses. Last time I I looked at this, there was $3 trillion worth of payroll that's being spent by small
+33:52
+businesses and entrepreneurs. And that's why it's very important for us to diffuse the output value of AI to all
+33:58
+these people rather than the value of AI being locked in frontier companies and a few large mega corps.
+34:06
+So it's kind of a bottoms up approach and really interesting. I think that's how you know a lot of um new trends
+34:12
+especially in tech you know take off. They start more grassroots and you know I love the idea of looking at small business owners.
+34:18
+I mean Apple is exactly like this. People don't think of Apple as an enterprise company. People think of it
+34:24
+as a consumer devices company but um a lot of adoption of Apple happen at the
+34:29
+grassroots level from small businesses and they power a lot of American small businesses and you know that that's an
+34:35
+inspirational example for us. Nvidia is an example like this. Nvidia initially sold to small companies and like
+34:41
+graphics companies and gamers and even like AI labs that were really tiny, right?
+34:47
+And so uh it's a it's by actually delivering the value that they became much much larger than Intel or AMD.
+34:56
+Well um it's a great note to end on. Arvent your comments, your insights always seem to age very very well. Um so
+35:04
+thanks for coming on and you covered a lot of ground. So thank you and hope to talk to you again soon.
+35:10
+Thank you. Thank you for having me. So earlier today I spoke with benchmark
+35:16
+general partner Peter Fenton and Alama CEO Jeff Morgan. Alama just raised a $65
+35:21
+million series B round. Benchmark and early investor and the timing here is pretty telling. Open models are moving
+35:28
+from developer experimentation into real enterprise adoption as we also heard from Arvin just now. Now, Peter also
+35:34
+made this really interesting prediction about how much AI usage could move to open weight models, what that could mean
+35:40
+for the frontier model margins. Here is that conversation. Jeff and Peter, thank you so much for
+35:46
+making the time to chat with us today. Jeff, let's start with you because Alama, my understanding, is basically a
+35:52
+way to download and run open AI models, open AI models yourself on your laptop
+35:57
+server, inside your own infrastructure. I guess more broadly on this moment for open source, we've been talking so much
+36:03
+about it. Did you expect it to have this kind of moment or momentum this quickly?
+36:09
+What do you think made it possible and why is Alama sort of positioned to come out right now?
+36:16
+Yeah, thanks so much for having me. Um, you know, Alama and and the open mall ecosystems grown way beyond our
+36:22
+expectations. Um but you know from the beginning we saw Spark with developers where they could truly take control and
+36:29
+ownership of their AI journey from you know that first kind of chat application they're building all the way to these
+36:35
+longunning long horizon agents um that thousands of businesses are talking to us about building with open models
+36:43
+right and so I guess this certainly we saw this happen with developers you see the open router data you see that
+36:50
+there's been a lot of adoption of these really good models that are reaching the frontier. But Peter, it feels like a moment right now where enterprise is
+36:57
+waking up and realizing, hey, we can use these models. We can manage our costs a lot better and they're good enough or
+37:04
+almost even as good as the frontier model. So do you think things have changed? What does it mean going forward
+37:09
+for Alama and just this open source space? Yeah, I think a maybe contrarian view
+37:15
+that is becoming consensus is our belief that 90 plus percent of the tokens
+37:22
+created will come out of openw weight models over the next 18 to 24 months possibly even by the end of the year and
+37:28
+the forces behind that are twofold. one is you talk about cost but the inference
+37:34
+uh margins generated by the frontier model companies I think are going to come under pressure when you can run
+37:40
+those uh without the markup that they're providing when you have good enough models from open weights. Um but the
+37:46
+second I think probably more important uh driving force of this is that the fine-tuning of the models and using
+37:52
+smaller models gets you lower latency and higher performance. So we see a
+37:58
+companies like Sierra and and you know the major applied AI companies an
+38:03
+embrace of open models for performance reasons. So they're getting uh orders of magnitude reduction in time to to first
+38:11
+token through the use of these open weight models that are tuned for the specific tasks. So that that force the
+38:16
+inexurability of open weight models I think in the ecosystem suggests that that a for as far as the eye can see a
+38:24
+super majority of the tokens generated will come out of these and then the question becomes which model and having
+38:30
+a place of llamas is the destination for developers to discover which model is the best suited for their task and I
+38:37
+think that's a major innovation in in empowering developers to give them choice and give them control
+38:44
+right And I think that that is well understood in a place like the Bay Area and among applied AI companies. But
+38:51
+Peter, if you think that 90% of token usage by the end of this year is going to come from open source, how do we get
+38:58
+there? How do you get beyond the Sierras, the AI companies into the Fortune 500 because there's still
+39:04
+hesitation um to really embrace these models? Maybe you go first, Peter, and then um Jeeoff, I'll get your your
+39:10
+thoughts on this. Yeah, I think that it's one of these cases where both um models will thrive.
+39:18
+Meaning I think the frontier models are continued to pursue the most complex use cases where you need to use the latest
+39:25
+and greatest most capable model. But as the enterprises and and they do that through developer tools and through
+39:32
+relationships with companies like fireworks um are understanding that there are use cases that are good enough
+39:38
+and that they can train and and then more importantly I think take internal confidential information where they have
+39:45
+total control over the provenence and the you know where that data goes and how it gets used. I think that those use
+39:50
+cases get lit up over this coming phase where we go from discovery, which is what the frontier models have have
+39:56
+opened up the the possibilities of what you can use them for to optimization and
+40:01
+ultimately um you know driving excellence on on total cost which is uh
+40:06
+an inevitable shift towards open models where they're good enough and and they can be run without the markup of the the
+40:13
+foundation models on their inference. Jeff, are you seeing that shift happen
+40:18
+in your data? What kind of companies are making that shift? Is it still mostly tech or are you starting to see non-
+40:24
+tech companies wait into this space and start to use more of these open source models?
+40:30
+Lama's adopted by over 85% of the Fortune 500 and that's from some of the most regulated industries whether it's
+40:37
+aviation, insurance, and a lot of that comes down to the trust relationship
+40:42
+they can build by having these models run in their environment. um and being able to do that securely and safely. Um
+40:48
+and what we've been most surprised by is that extends even to these largest cloud models that are are becoming um
+40:54
+extremely powerful. And you know being able to provide cloud computing environments in the US and Europe where
+41:01
+these customers can take that trust and extend it uh to the data center um is a
+41:07
+motion we're really seeing. And so, you know, a customer might get started with a small model um that they're running
+41:13
+colloccated with their data and then as they further their journey with open [clears throat] models um they're able
+41:19
+to go and adopt these larger ones. And so we're seeing that across um a surprising number of these industries um
+41:26
+you know even the most regulated ones like healthcare and it's truly one of the most powerful parts of open models.
+41:32
+So you're telling me that they're actually using open source models right now that many of the Fortune 500?
+41:40
+Absolutely. And you know what's amazing is that even from the beginning we saw adoption quite early. Obviously the use
+41:47
+case evolves right we went from a world where you know customers were setting up their own internal chat GPT type uh
+41:55
+experiences for for their teams and their customers. Um, and that's extended all the way to these really longunning
+42:00
+coding coding agents. And that's all happening in every everywhere from, you know, a hospital uh to power plants,
+42:09
+right? That's fascinating. So, you know, I guess over the last few years, has it been mostly built on top of the American
+42:15
+labs open-source models, the GBT or the Google Gemma options? Do you see that
+42:21
+shift moving to more of the Chinese models? I think we see a really healthy mix of
+42:28
+models from different geos. Obviously the Gemma models from Google deep mine are just incredible multimodal
+42:33
+capabilities and then you know as of recent we've seen extremely
+42:38
+solid longunning agentic coding models um come out of some of the Chinese model
+42:44
+labs. Um, OAMA partners with all these model labs and so it's kind of our job to help, as Peter mentioned, bring
+42:50
+models to developers, help them match it to a use case and we do see different use cases driven by different labs that
+42:57
+that have their own focus. Peter, when I look at sort of the adoption numbers, it feels like Gemma
+43:03
+and you know, chat GBT's open-source model has you don't really see them on
+43:09
+the adoption. It's really been taken over by these Chinese models. Have the Chinese run away with this leg of the
+43:15
+race? I think just measured in tokens, they have a dominant share. No question. I
+43:23
+mean GLM and I think people are highly anticipating the new deepseek model and I think it was the the the GLM the ZI
+43:30
+model that had for most folks approximated what they were getting out of the Opus models and that that
+43:36
+proximity for the agentic longunning uh more complicated reasoning tasks that
+43:43
+the Chinese models have delivered I think has put them in if not you know absolute par within a you know large
+43:50
+percentage of the use cases good off and you know one of the constraints in all of this is the compute and I think
+43:56
+that's one of the variables that you have to talk about when you talk about open weight models is where does the
+44:02
+inference um compute sit and there'll be an interesting almost um you know
+44:09
+thermonuclear battle to to provide the compute to support the demand that's emerging for the openweight models given
+44:16
+that they are delivering them at a significantly lower cost but again I think more importantly higher
+44:21
+performance performance. So we see many of our applied AI companies forming long-term relationships with companies
+44:26
+like fireworks together and and others to um NIBUS, you know, the Neocloud
+44:32
+constellation. Alam is also working with those providers so that that when it's good enough in the Chinese models that
+44:38
+the developer doesn't have to then go through the brain damage of finding an inference provider, [snorts] then standing it up and seeing if it works or
+44:45
+doesn't work. And and there's still so much complexity to making the openweight models effective. um which is why when I
+44:52
+say 90% of the tokens are generated by open weight models, it still may be that 90% of the revenue is going to the
+44:57
+frontier models. So so the the pricing difference between the two is something on the order of three to five times more
+45:04
+expensive today to generate a token on a frontier model than it is an openweight model. Um and I think over time that
+45:10
+just puts real economic pressure on the system. puts economic pressure on which system
+45:16
+the build for the the frontier models to continue
+45:22
+to deliver the the value that they're and now it may be having capacity is uh
+45:30
+enough economic pressure release and I think right now since it is a capacity constraint environment we're able to see
+45:36
+clearly where does this all settle down and capacity constraints create weird perversions in long-term
+45:43
+economic models and they they [clears throat] would you believe they evaporate? Did do they evaporate in 2030 2035? It's it's
+45:49
+it's anyone's guess. Are you getting at the idea that infrastructure is scarce? Everyone needs
+45:57
+compute. So maybe like the meta SpaceX playbook, we've seen them actually host
+46:02
+compute for others instead of just their own models. Are you saying that could apply to open AI and anthropic the labs?
+46:09
+Yeah, I think that the the the constraint on compute and power um will
+46:16
+be the mediating factor to the adoption rate of AI more than demand and
+46:21
+right and then the second sorry the second part of what you're saying too Peter like I just will go back and say
+46:26
+that you said that GLM and I you're not the first person to say this I hear this from tons of people in tech that I
+46:31
+talked to that it's almost as good as in some cases better than the latest you
+46:36
+know opus model from anthropics So, like I'm kind of wondering if as that pricing pressure weighs on the labs, do they
+46:45
+cash in on the compute that they've already bought or rented to host for say open source models?
+46:52
+I think that's unlikely. Um, you know, there's an era where Microsoft fought
+46:58
+forever Linux and then they embraced it. So, it would require their business models to evolve from being pursuing AGI
+47:06
+and pushing the frontier. I think what's more likely to happen is that they move into vertical applications is that they
+47:12
+go proverbally up the stack to places where the margins are more defensible from the generalized intelligence moving
+47:20
+you know into mainstream and going deep in places that they've already announced design financial etc medical or biotech
+47:28
+so so I think it's more likely given their strategies that they pursue more differentiation then they try and you
+47:34
+know um leverage their compute access over the mid to long term. You have to wonder will they deliver the lowest cost
+47:42
+token given their scale or will there be some interesting um fragmentation where
+47:48
+there's certain use cases that are just delivered with a more almost bare metal you know kind of open weight mode
+47:54
+approach the the thing which I think is sort of again under underappreciated is that the applied AI companies aren't
+48:00
+going to open weight models for cost reasons exclusively I think most of them Sierra has said this publicly it's
+48:05
+driven by performance so So being able to have direct control over the model to fine-tune it and then once a task
+48:12
+becomes understood and bounded, it wants to go to a high performance low cost you
+48:19
+know of inference model and and there'll always be the next frontier I think of intelligence where you need the latest
+48:25
+and greatest but you know a a large bulk of the market's going to be served by
+48:30
+good enough open source where performance is going to be a driver which then ultimately will show up as cost.
+48:36
+That's really interesting. So cost is almost the bonus. Whereas I think there's a tendency especially on Wall
+48:42
+Street to still think of you just go to the open source model for cost not necessarily performance. You have to
+48:47
+give something up. But what you're saying I think Peter is that that fine-tuning is really valuable. Um Jeff,
+48:53
+do you see that? Do you see I last week we talked a lot about the misconceptions
+48:58
+of open source? Um because they come out of China. I think there's still a lot of companies that are worried about security issues. You solve that, right?
+49:05
+because you're hosting them here in the United States. Um, what kind of questions are you getting from corporations that are now interested in
+49:13
+open source and maybe looking to shift some of their workloads?
+49:19
+Yeah, that's exactly right. What we see is that, you know, there's one thing is where the model's from and where it was
+49:24
+created and trained, but the more important thing to these businesses we speak to is where it runs and how it runs. And what they're looking for there
+49:31
+is first off a way to run it, you know, in a a geographic location that's where their business operates, whether that's
+49:37
+US or Europe, uh, as an example. And the second thing is then tooling to run it safely. And, you know, this works into
+49:44
+the performance piece, which is, you know, can can you bring the model closer to your data? C can you then monitor it,
+49:50
+make sure it's running correctly? Um, these are all things that, you know, the Frontier model labs provide as part of
+49:56
+their product. But for an open model where you receive the weights, that's something customers are left to do on their own right now. Um, and that's
+50:02
+where Alama's cloud comes in and and really where, you know, we can provide a secure environment where you can access
+50:07
+the power of these open models and customize them. Um, but also get, you know, the safety uh that you get from a
+50:13
+frontier model lab. Um, Peter, I've talked a lot about sort of the implications of building on
+50:19
+Chinese models and sort of the longer term, right? And if the whole world is going to be building on essentially a
+50:25
+Chinese model, then it's going to be a Chinese ecosystem and there's risks involved with that. Do you think that
+50:31
+American AI American companies are paying enough attention or should be paying more attention to developing our
+50:38
+own open source models? Well, I think the open weight model uh
+50:44
+ecosystem benefits from heterogeneity from multiple geographies. Uh I would
+50:49
+love to see even some of the frontier model companies take more aggressive stance with this where they recognize
+50:56
+that you know you have an ecosystem that will put pressure to have control and access for developers which is something
+51:02
+that you know OAMA is enabling. It's why you have 9 million developers that are coming there discovering and and
+51:08
+building. And if you built your business where there's a wall behind that that that prevents, you know, critical mass
+51:15
+and ubiquity, I think it ultimately positions you to be, you know, a closed system. And I I think in the history of
+51:21
+technology, those strategies can leave you isolated in the high end of the market. So I think it's a mistake to not
+51:27
+have a strategy that gets you the super majority of developers. And if you aren't achieving that, that suggests you
+51:33
+will you'll lose some major part of the market. And you mentioned Microsoft and Linux
+51:38
+and maybe that's sort of how how this evolves. But I guess Peter, do you think that there's more that washing kit can
+51:45
+do to create those incentives? And I also wonder if you think that like openw weight AI is as important as say chips
+51:53
+or infrastructure in the AI race and it feels like an area that you know policy makers don't know what to do with. They
+52:00
+want to regulate it um potentially if it's going to keep China out. Are there things they could or should be doing to
+52:06
+actually encourage that development if it's so important as you kind of laid out?
+52:11
+Well, I I think it's in part to not pervert the system by blocking access.
+52:18
+There's some discussion that that might be a coherent strategy to limit access to open weight models. Uh I think
+52:24
+that'll have the exact opposite effect. It'll disadvantage the US uh technology
+52:29
+market. it will globally those those those models will not be blocked from other regions that end up creating
+52:35
+critical mass that I think isolates the United States. So my hope is that there's a there's a pro-active,
+52:41
+you know, embrace and and support open and try to be at the same level of
+52:46
+multiple regions including chi China. And I think that's a uh at risk. the the
+52:52
+risk we've talked about of of what might happen in the regulatory capture which I don't think will happen but I think
+52:58
+there's a risk that the frontier models are able to uh encourage a strategy that
+53:03
+would be counterproductive even for them because I think ultimately they're going to want to have the super majority developers strategy that doesn't achieve
+53:09
+that I was a losing strategy right and you know I think there's also another misconception that you can't
+53:15
+monetize open source AI which um I think the Chinese labs are kind of proving you can through API access in other ways. Um
+53:22
+Jeeoff, I wonder if you agree with what Peter's been saying and also do you think like what would you tell a policy
+53:28
+maker in Washington that's looking at this wave of momentum for open source and seeing it come out of China?
+53:36
+I think the most important thing to do is to to really get to know the customers, especially the US-based ones,
+53:41
+and what they're trying to accomplish with their AI journey. And in doing that, learning, you know, to to Peter's
+53:47
+point, what is truly productive uh for these businesses and how can we help them adopt AI as fast as possible in a
+53:53
+way that's safe and secure and um I think a lot of the points Peter touched on are right and they they may be
+53:59
+counterproductive. And I think the first step is to really get get to know these customers and talk to them and
+54:04
+understand their needs. Right. And then I guess this is a question from Jasmine, my producer Jeff.
+54:09
+Um, is it important that this developer tool, what Alama is, is it important that it's American and does that help
+54:16
+when you talk to companies that are worried about security in Chinese models? Yeah, Llama's part has partners with
+54:23
+companies around the world, whether it's US, Europe, um, you know, we helped launch a Canadian coding model a few weeks ago.
+54:30
+And, um, I think it's really important that, you know, back to why these businesses are adopting open models,
+54:37
+it's trust. and that there's there are there is an entity that that can be trusted to access these models. I think
+54:42
+it's very important and that's a common, you know, piece of feedback we hear from customers all the time.
+54:48
+Um, Peter, I wonder if you can weigh in on this kind of debate that I feel like has broken out into the open just even
+54:54
+over the last few days that really centers around data. I don't know if you saw Alex Karp from Palanteer was on CNBC
+55:01
+and he sort of railed against the frontier models and said why would enterprise want to give you our valuable
+55:06
+data so that you can train off of it. We want to own more of it and I wonder if you think that that's right and if sort
+55:12
+of companies should be more protective of their data from the big labs.
+55:18
+Well, I think there's a clear translation from open and closed models
+55:25
+into economic value within enterprise which requires context and orchestration
+55:30
+and the context layer of the enterprise provides where investors in a company Merkore which um provides that sort of
+55:37
+task mapping of the internals of a company their their workflows their
+55:42
+proprietary data uh onto the models and the idea that you would you know put that back into the frontier models is
+55:49
+incoherent. So, so a major mandate to apply AI to productive use cases
+55:54
+requires capturing the internal workflow data in a way that you you have ownership of it and also portability. So
+56:03
+again, one of the major benefits of open weight models is that you can pour the the and this is one of the one of the
+56:09
+long-term challenges for margins I think in in AI in general, which is the switching cost from model to models only
+56:15
+a function of rehydrating your context. So so the idea that enterprises would seed that context to a um closed model
+56:23
+company seems incoherent to me. So ownership of that of of your internal workflows of your proprietary knowhow
+56:29
+and expertise is sort of where you think about why is an employee more valuable to one company versus another. Well,
+56:35
+they they've trained them, they've given them context, they've orchestrated them. And I and I think that's the mandate for enterprises is to develop an ownership
+56:42
+and and invest in that because it's it's what allows them to get the benefit of those models applied to their business
+56:48
+as as opposed to giving it to those models and then losing it to their competitive product down the line.
+56:54
+If a portfolio company asks you, should we, you know, work with forward deployed engineers from OpenAI or Anthropic? What
+57:00
+would you tell them? Peter, I would have to argue with them that
+57:07
+there may be better choices. Specifically on this question of who will own the data, um, how portable will
+57:13
+it be to other models? And I think there's a series of questions I would ask that would likely get them to say, we don't want to engage in a contract
+57:20
+that requires us to do that. um I think anthropic and openi would resist those those uh protections and it's it's why
+57:26
+there should be a robust independent ecosystem that's able to then ride on top of all these heterogeneous models
+57:33
+that are going to continue to come out that can allow you to pick the right model for the right task as opposed to
+57:38
+you know vertically integrating them. Okay, last question. Peter, you already kind of answered this so I'll go to you
+57:45
+Jeff. Three years from now, what does the enterprise AI stack look like? Um,
+57:50
+is it one frontier model plus a bunch of tools? Is it a messy portfolio of open,
+57:56
+close, local, hosted, cheap, expensive, specialized models? Um, what do you think the majority of companies are on
+58:02
+and specifically non- tech too? Yeah, I think like Peter said, it'll be
+58:08
+a mix. Um, but that super majority of the the the tokens will be from open
+58:13
+models. And if you think about what these businesses are doing, you know, the average Fortune 500 business may have thousands of internal applications
+58:20
+and they're modernizing all these with AI. And for that to truly be productive and in the best interest of the
+58:26
+business, it's to use open models and increasingly open models that are colloccated with the data. And so I
+58:31
+think we're going to see a transformation of these applications um into AI augmented um agents and and I
+58:38
+think in in you know three years from now these new AI agents are going to be processing hundreds of millions of
+58:44
+tokens again a super majority of that being open models just because they're so efficient. They're lower latency and they're higher performance for their use
+58:50
+cases. Right. Okay. So Peter, last one for you then. Um, can we expect you to see can
+58:56
+we expect to see you do more of these deals leaning in? Um, what's exciting
+59:01
+you right now about this space? Absolutely. I think the idea of
+59:06
+developers empowered is what fuels our industry and we resist uh early
+59:14
+oligarchs igopies I should say. And so I think one of the the predicates of entrepreneurship is creative
+59:20
+destruction. So that means giving tools to the creators, the developers to enable things we couldn't even imagine.
+59:27
+And I I am very optimistic that instead of being a igopoly, open weight models
+59:32
+and open source is enabling a constellation of these use cases to emerge from the creativity of
+59:37
+developers. And so we we are maximally interested in that. And then one other thing which I think comes out of this is
+59:42
+the idea that we're now opening up a whole set of use cases around long horizon agents. um agents that'll be
+59:49
+working over many days, weeks, and even months. And and part of that um requires
+59:54
+the the sorts of optimizations that open weight models give developers. So we we are extremely excited about that
+1:00:00
+opportunity set. Right. Well said and very missionoriented. Um I'm so glad that we
+1:00:06
+were able to talk to both of you and have that wide ranging conversation. I hope you will both come back and help us
+1:00:11
+and help our audience figure out what's going on. It is moving very very quickly. That's why I love it and I
+1:00:17
+could do this every day. So, uh, thank you so much, guys. Talk to you again soon, I hope.
+1:00:22
+Some great conversations today on a postfrontier world. We're going to post this, um, as a new video, so make sure
+1:00:28
+to catch that. And thank you as always to Sammy, Jasmine, Robert, Evan, Jordan.
+1:00:34
+Um, I will be on vacation for the next few weeks. I'm going to be in Canada, so we'll put the live stream on pause, but
+1:00:40
+can't wait to get back and we'll see you then. Thanks for watching.
+
