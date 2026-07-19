@@ -9,10 +9,11 @@ or typing well, that preserves every conversation you hold through it
 ## The problem
 
 AI interfaces assume sharp eyes and fast hands: small text,
-mouse-driven layouts, silent responses. And the work itself is
-scattered across providers who guard it: no API reaches your chat
-history, and exports are manual, lossy, and getting harder to come by.
-What you made with AI is not, today, yours.
+mouse-driven layouts, silent responses, and relentless visual
+tracking. And the work itself is scattered across providers who guard
+it: no API reaches your chat history, and exports are manual, lossy,
+and getting harder to come by. What you made with AI is not, today,
+yours.
 
 ## The promise
 
@@ -28,13 +29,22 @@ get harder.
 
 One accessible desktop app that talks to many AIs:
 
-- Claude, local Ollama models, and other backends in one interface,
-  switchable by keystroke.
-- Multiple independent sessions that can be opened, arranged, detached,
-  restored, and used across one or more monitors.
+- Local models first. An open model on your own machine is the
+  everyday default: no account, no metering, no network, nothing that
+  can be shut off. Hosted models like Claude are one keystroke away
+  when a task needs them.
+- Never dead in the water. If the network drops or a quota runs out,
+  the cockpit falls back to a local model and says so, rather than
+  failing.
+- Multiple independent sessions that can be opened, arranged,
+  detached, restored, and used across one or more monitors.
 - Large, scalable text everywhere.
 - Keyboard, voice, touch, and mouse — any one of them alone is enough.
+- Reachable from wherever you already are: a global hotkey sends the
+  text in front of you to a session without hunting for a window.
 - Speech in: prompt by dictation. Speech out: responses read aloud.
+- Sound carries status. Waiting, finished, and failed are distinct
+  audible cues, so progress does not depend on watching a screen.
 - Truthful, plain-language errors that can be read aloud, with full
   technical detail available on request. No information trapped in a
   dialog.
@@ -64,9 +74,10 @@ never needs a migration to exist.
 ## Who it is for
 
 Anyone who needs their ears and voice to do what eyes and hands
-usually do, and anyone who wants to own their work with AI instead of
-renting access to it. The developer is the first user: this is built
-from lived experience, not a compliance checklist.
+usually do — whether from low vision, limited typing, or simply eyes
+worn out by a long day — and anyone who wants to own their work with
+AI instead of renting access to it. The developer is the first user:
+this is built from lived experience, not a compliance checklist.
 
 ## First milestone
 
@@ -81,30 +92,38 @@ thousand devoted users who depend on it. Depth over breadth.
 
 ## Deferred
 
-Web demo, TV client, teaching features, multi-user service. The core
-abstractions keep those doors open; the accessible desktop comes first.
+Web demo, TV client, teaching features, multi-user service, and
+automatic routing between local and hosted models. The core
+abstractions keep those doors open; the accessible desktop comes
+first.
+
+Manifold Switchboard is an accessible interface that happens to speak
+to many AIs — not an orchestration platform, not a compliance product,
+not a code-auditing tool. That distinction is what keeps it buildable
+by one person and useful to people no one else is building for.
 
 ## Guiding principles
 
 - The fundamental unit is the session, not the model. Models and
-  backends can change; the session is the durable record of the user's
-  work.
+  backends can change; the session is the durable record of the
+  user's work.
 - If it cannot be done by reading large text, pressing keys, and
   speaking, it is not done.
+- Capture is independent of presentation: the original session record
+  is preserved, and conversation, detail, and raw views are
+  projections of that record.
 - Never claim an imported conversation is complete unless the source
   proves it: preserve what arrives, record what's known, flag what's
   missing.
-- Capture is independent of presentation: the original session record
-  is preserved, and conversation, detail, and raw views are projections
-  of that record.
 - Work is organized around projects, sessions, and user goals, not
   provider names. A backend is a worker inside the project, not the
   place where the work belongs.
-- The client should not need to know whether a backend uses a local process, local HTTP service, socket, remote server, or cloud API.
+- The client should not need to know whether a backend uses a local
+  process, local HTTP service, socket, remote server, or cloud API.
 - Everything the app stores about you, you can inspect, correct,
-  export, or delete. Owning your data means the right to erase it, not
-  only to keep it.
-- Every saved conversation belongs to the user, on the user's machine,
-  in a format they can read without us.
+  export, or delete. Owning your data means the right to erase it,
+  not only to keep it.
+- Every saved conversation belongs to the user, on the user's
+  machine, in a format they can read without us.
 - The library is only as complete as the cockpit is pleasant. Making
   people want to live here is a data-integrity feature.
