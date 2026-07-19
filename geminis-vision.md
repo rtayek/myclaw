@@ -1,9 +1,9 @@
 # Gemini's Vision for Switchboard
 
 ## Core Premise
-**Switchboard is an accessible, multi-window AI cockpit and sovereign agent harness backed by a durable, provider-independent library.** 
+**Switchboard is an accessible, screen-agnostic AI cockpit and sovereign agent harness designed to adapt seamlessly across 0 to 10+ physical monitors.** 
 
-It is built for people who require their ears, voice, and keys to accomplish what eyes and hands usually do. Above all, it guarantees that you own every conversation and context record held through it—permanently, locally, and in a format under your complete control.
+It is built for people who require their ears, voice, and keys to accomplish what eyes and hands usually do. Whether running as a headless background daemon (0 monitors), a single tabbed cockpit (1 monitor), or a multi-display spatial array (2 to 10+ monitors), it guarantees that you own every conversation and context record held through it—permanently, locally, and in a format under your complete control.
 
 ---
 
