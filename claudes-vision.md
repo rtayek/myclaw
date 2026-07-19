@@ -60,6 +60,10 @@ durable and useful:
 - Search across every conversation, regardless of which AI answered.
 - Organize conversations by project.
 - Generate concise handoffs to continue work with another AI.
+- Let the user see, for their own work, which model handled which
+  session and how it went — not a benchmark, just their own history,
+  because the only ranking that predicts value is the one built from
+  tasks you actually ran.
 - Keep summaries, tags, indexes, extracted decisions, and other
   interpretations separate from the original captured record.
 - Import old conversations, best-effort and last. Native capture and
@@ -127,3 +131,6 @@ by one person and useful to people no one else is building for.
   machine, in a format they can read without us.
 - The library is only as complete as the cockpit is pleasant. Making
   people want to live here is a data-integrity feature.
+- No model is ranked in the abstract. A model is only ever better or
+  worse for a task the user actually did — the vendor's benchmark is
+  not evidence, the user's own saved history is.

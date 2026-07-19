@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="MyClaw - Accessible Sovereign AI Cockpit & Orchestrator Harness">
+  <title>MyClaw - Sovereign Accessible AI Cockpit</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar / Navigation -->
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main Navigation">
+      <div class="brand">
+        <div class="logo-icon" aria-hidden="true">🐾</div>
+        <div class="brand-text">
+          <h1>MyClaw</h1>
+          <span class="badge">Sovereign Harness</span>
+        </div>
+      </div>
+
+      <div class="section-label">Active Workspace</div>
+      <div class="workspace-card" tabindex="0" role="button" aria-label="Current Workspace: Accessible Desktop AI">
+        <div class="ws-icon" aria-hidden="true">📁</div>
+        <div class="ws-info">
+          <div class="ws-title">myclaw-core</div>
+          <div class="ws-subtitle">Local + Cloud Orchestrator</div>
+        </div>
+      </div>
+
+      <div class="section-label">Model Routing</div>
+      <div class="routing-mode-selector" role="radiogroup" aria-label="Model Routing Mode">
+        <button class="route-btn active" data-mode="hybrid" role="radio" aria-checked="true" tabIndex="0">
+          <span class="route-icon">⚡</span>
+          <div class="route-text">
+            <strong>Hybrid Local-First</strong>
+            <small>Local Ollama + Remote Advisor</small>
+          </div>
+        </button>
+        <button class="route-btn" data-mode="local-only" role="radio" aria-checked="false" tabIndex="0">
+          <span class="route-icon">🛡️</span>
+          <div class="route-text">
+            <strong>100% Deskside Local</strong>
+            <small>Zero Token Cost / Airgapped</small>
+          </div>
+        </button>
+        <button class="route-btn" data-mode="frontier" role="radio" aria-checked="false" tabIndex="0">
+          <span class="route-icon">🚀</span>
+          <div class="route-text">
+            <strong>Frontier Direct</strong>
+            <small>Claude 3.7 / Gemini 2.5</small>
+          </div>
+        </button>
+      </div>
+
+      <div class="section-label">Saved Sessions (Local Library)</div>
+      <ul class="session-list" id="session-list" role="list">
+        <li class="session-item active" tabindex="0" role="listitem">
+          <span class="session-dot local"></span>
+          <div class="session-meta">
+            <span class="session-title">Post-Frontier Architecture</span>
+            <span class="session-time">10m ago • 4.2k tokens</span>
+          </div>
+        </li>
+        <li class="session-item" tabindex="0" role="listitem">
+          <span class="session-dot hybrid"></span>
+          <div class="session-meta">
+            <span class="session-title">Gradle Build & Test Suite</span>
+            <span class="session-time">2h ago • 1.8k tokens</span>
+          </div>
+        </li>
+        <li class="session-item" tabindex="0" role="listitem">
+          <span class="session-dot cloud"></span>
+          <div class="session-meta">
+            <span class="session-title">Accessibility Voice Controls</span>
+            <span class="session-time">Yesterday • 12k tokens</span>
+          </div>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="telemetry-box" aria-label="System Telemetry">
+          <div class="telemetry-row">
+            <span>Local Compute</span>
+            <strong id="local-status" class="status-online">Ollama (GLM-4 9B)</strong>
+          </div>
+          <div class="telemetry-row">
+            <span>Est. Efficiency</span>
+            <strong id="efficiency-metric">420 tokens/W</strong>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Cockpit Area -->
+    <main class="cockpit-main" id="cockpit" role="main">
+      <!-- Top Bar / Header -->
+      <header class="cockpit-header">
+        <div class="header-left">
+          <button class="icon-btn toggle-sidebar" id="toggle-sidebar-btn" aria-label="Toggle Navigation Sidebar">
+            ☰
+          </button>
+          <div class="header-title">
+            <h2>Post-Frontier Architecture</h2>
+            <span class="session-tag">Session ID: #MYC-2026-08F</span>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <div class="accessibility-controls" aria-label="Accessibility Settings">
+            <button class="icon-btn" id="font-increase-btn" aria-label="Increase Font Size" title="Increase Font Size (Ctrl + Plus)">A+</button>
+            <button class="icon-btn" id="font-decrease-btn" aria-label="Decrease Font Size" title="Decrease Font Size (Ctrl + Minus)">A-</button>
+            <button class="icon-btn" id="tts-toggle-btn" aria-label="Toggle Text to Speech Reads Aloud" title="Toggle Auto Read Aloud">🔊 Speech: ON</button>
+          </div>
+          <div class="backend-badge" id="active-backend-badge">
+            <span class="badge-dot"></span>
+            <span id="active-backend-name">Ollama (GLM-4 9B) + Claude Advisor</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Transcript View -->
+      <section class="transcript-container" id="transcript-container" aria-label="Conversation Transcript">
+        <div class="transcript-stream" id="transcript-stream">
+          <!-- System Welcome Message -->
+          <div class="chat-card system-card">
+            <div class="card-header">
+              <span class="card-author">⚡ Harness System</span>
+              <span class="card-timestamp">10:14 PM</span>
+            </div>
+            <div class="card-body">
+              <p>Welcome to <strong>MyClaw Cockpit</strong>. Session context is recorded locally on disk at <code>~/eclipse-workspace/myclaw/runs/</code>. Local model <strong>Ollama (GLM-4 9B)</strong> is ready as primary deskside orchestrator.</p>
+            </div>
+          </div>
+
+          <!-- User Message -->
+          <div class="chat-card user-card">
+            <div class="card-header">
+              <span class="card-author">👤 Ray (User)</span>
+              <span class="card-timestamp">10:15 PM</span>
+            </div>
+            <div class="card-body">
+              <p>How does the post-frontier harness architecture protect data sovereignty while optimizing token value per watt?</p>
+            </div>
+          </div>
+
+          <!-- Assistant Response -->
+          <div class="chat-card assistant-card">
+            <div class="card-header">
+              <span class="card-author">🐾 MyClaw Harness (Hybrid)</span>
+              <div class="card-meta-tags">
+                <span class="meta-tag local">Local: GLM-4 9B</span>
+                <span class="meta-tag advisor">Advisor: Claude 3.7</span>
+                <span class="card-timestamp">10:15 PM</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <p>The post-frontier harness architecture separates <strong>context ownership</strong> from <strong>raw inference compute</strong>:</p>
+              <ul>
+                <li><strong>Local Deskside Orchestration:</strong> The primary agent loop runs on local hardware (Ollama / unified memory). Everyday queries, tool invocation, and private context remain 100% on your machine at zero token cost.</li>
+                <li><strong>Remote Advisor Escalation:</strong> Frontier cloud models are invoked strictly as remote sub-agents only when deep reasoning is required, returning structured results back to the local harness.</li>
+                <li><strong>Data Sovereignty:</strong> Conversations are captured at transaction time in standard Markdown/JSON formats locally. Switching backends requires no cloud vendor permission—simply rehydrating your local context records.</li>
+              </ul>
+            </div>
+            <div class="card-footer">
+              <button class="action-btn speak-btn" aria-label="Read Message Aloud">🔊 Read Aloud</button>
+              <button class="action-btn copy-btn" aria-label="Copy Response Text">📋 Copy Text</button>
+              <span class="telemetry-detail">Latency: 140ms • Local Watts: 35W • Cloud Escalations: 1</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Input & Command Console -->
+      <footer class="cockpit-footer">
+        <form class="input-form" id="input-form">
+          <div class="input-wrapper">
+            <textarea 
+              id="prompt-input" 
+              class="prompt-textarea" 
+              placeholder="Ask MyClaw or issue a command (e.g. /route, /speech, /export)..." 
+              rows="2"
+              aria-label="Prompt Input Area"
+            ></textarea>
+            
+            <div class="input-tools">
+              <button type="button" class="tool-btn voice-btn" id="voice-dictate-btn" aria-label="Start Voice Dictation" title="Voice Dictation">
+                🎤 Dictate
+              </button>
+              <button type="submit" class="submit-btn" id="send-btn" aria-label="Send Prompt (Ctrl + Enter)">
+                Send Prompt ↵
+              </button>
+            </div>
+          </div>
+        </form>
+        <div class="keyboard-shortcuts-bar">
+          <span><kbd>Ctrl</kbd> + <kbd>Enter</kbd> Send</span>
+          <span><kbd>Alt</kbd> + <kbd>S</kbd> Voice Input</span>
+          <span><kbd>Alt</kbd> + <kbd>R</kbd> Read Aloud</span>
+          <span><kbd>Ctrl</kbd> + <kbd>M</kbd> Toggle Routing</span>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

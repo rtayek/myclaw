@@ -32,9 +32,11 @@ Manifold should provide:
 * provider-independent storage and export;
 * concise handoffs for continuing work with another AI;
 * support for comparing models on the user’s own work rather than treating provider claims or public benchmarks as authoritative;
-* preservation of useful execution evidence, such as latency, cost when known, failures, retries, selected model, and user judgment of the result.
+* preservation of useful execution evidence, such as latency, cost when known, local compute used, failures, retries, selected model, and user judgment of the result.
 
 Local, open-weight, and cloud models should be treated as peers with different capabilities, costs, latency, privacy properties, and resource requirements. A local model should not be considered merely an inferior fallback, and an expensive frontier model should not be assumed to be the best choice for every task.
+
+Manifold should help the user see AI as deployed work, not as a leaderboard. The relevant question is not only which model is strongest in isolation, but which combination of model, context, tool access, compute location, latency, cost, privacy, and reliability produces useful results under the user's constraints.
 
 The accessible cockpit is the first product. Daily use of that cockpit builds the collection.
 
@@ -44,7 +46,7 @@ The conversation library is the stable context layer that makes the collection d
 
 Over time, Manifold should support a personal evaluation loop grounded in the user’s actual tasks and outcomes. The purpose is not to maximize token volume or favor a fashionable model, but to help the user obtain the best useful result under their chosen constraints of quality, cost, latency, privacy, reliability, and local compute.
 
-Future versions may route work among models, use a local model for ordinary tasks, or escalate difficult work to a specialized or frontier model. That orchestration should be evidence-based, visible to the user, reversible when practical, and supported by contribution-level provenance when several models participate in one result.
+Future versions may route work among models, use a local or open-weight model for ordinary tasks, keep sensitive work close to the user's machine when practical, or escalate difficult work to a specialized or frontier model. That orchestration should be evidence-based, visible to the user, reversible when practical, and supported by contribution-level provenance when several models participate in one result.
 
 ## First Goal
 
@@ -80,7 +82,7 @@ Privacy and capability controls should be explicit and enforced by the system, n
 
 Model choice should follow the user’s task, constraints, and evidence from real use. Manifold should not privilege a provider, model family, or deployment method merely because it is fashionable, expensive, or currently at the top of a public benchmark.
 
-Evaluation should measure useful outcomes rather than activity alone. More tokens, more agents, or more compute do not by themselves mean more value.
+Evaluation should measure useful outcomes rather than activity alone. More tokens, more agents, more energy, or more remote compute do not by themselves mean more value.
 
 The cockpit must be pleasant and reliable enough for daily use. A library is only as complete as the conversations people choose to conduct through it.
 
