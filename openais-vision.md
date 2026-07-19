@@ -2,9 +2,11 @@
 
 ## Vision
 
-Manifold will begin as an accessible AI cockpit and grow into a user-controlled AI harness backed by a durable, provider-independent library for a person’s work with AI.
+Manifold will begin as an accessible AI cockpit and grow into a user-owned AI workspace and continuity layer backed by a durable, provider-independent record core.
 
 Its first purpose is simple: make it easier to use different AI systems through one clear desktop interface designed for large text, keyboard control, touch, dictation, and spoken responses.
+
+The cockpit is how the user interacts with AI. The harness is how Manifold connects models, tools, and context. The library is how the work survives.
 
 The model is not the whole product. Manifold should control the relationship among the user, their context, their tools, and whichever local or cloud models are useful for the task.
 
@@ -15,6 +17,26 @@ Every conversation handled through Manifold will be preserved locally as complet
 As Manifold grows, these conversations will become part of a common library that can organize work by project, search across conversations, preserve provenance, support model evaluation, and export information in readable or structured forms.
 
 Models will change. The user’s conversations, projects, preferences, evaluations, and accumulated context should remain stable and portable across them.
+
+AI systems come and go. Manifold keeps the user’s work.
+
+## Distinction
+
+Agent and AI harnesses will be abundant. Manifold should not try to distinguish itself by offering the largest model catalog, the most elaborate autonomous agents, or the fastest router.
+
+Its distinction should be the combination of:
+
+* accessibility designed into the product architecture rather than added as decoration;
+* durable continuity across models, providers, tools, and time;
+* local ownership of conversations, project context, evaluations, and source artifacts;
+* explicit, understandable control over context disclosure;
+* honest provenance and preservation-fidelity claims;
+* personal evaluation based on the user’s actual work rather than public benchmark rankings;
+* a reusable record core that can serve Manifold and other AI clients.
+
+Most harnesses will optimize execution. Manifold should optimize continuity: what happened, what context was used, what was derived, what changed, what the user preferred, and how the work can be carried elsewhere.
+
+Manifold should preserve work, not merely messages.
 
 ## Product Direction
 
@@ -48,6 +70,30 @@ Over time, Manifold should support a personal evaluation loop grounded in the us
 
 Future versions may route work among models, use a local or open-weight model for ordinary tasks, keep sensitive work close to the user's machine when practical, or escalate difficult work to a specialized or frontier model. That orchestration should be evidence-based, visible to the user, reversible when practical, and supported by contribution-level provenance when several models participate in one result.
 
+## Record Core
+
+The capture, persistence, provenance, hashing, import, and projection machinery should form a coherent record core beneath the cockpit and harness.
+
+That core should own:
+
+* sessions, turns, tool invocations, and attachments;
+* native capture and imported material;
+* immutable source artifacts whenever practical;
+* content identity, hashes, and integrity checks;
+* provenance and preservation-fidelity claims;
+* relationships among original records, derived artifacts, and exports;
+* provider-independent storage and verification.
+
+Original records should remain authoritative. Summaries, tags, indexes, embeddings, handoffs, extracted decisions, and other interpretations should remain derived projections linked to their exact sources.
+
+Hashes can establish byte identity, detect accidental change, support deduplication, and link derived records to exact source artifacts. They cannot prove that a source was complete, accurate, or trustworthy. Content integrity and capture provenance must therefore remain distinct concepts.
+
+The record core should use provider-neutral concepts such as sessions, messages, artifacts, tool invocations, execution metadata, derivations, imports, verification, and export. Provider adapters should translate external events into that common model rather than allowing provider-specific assumptions to define the foundation.
+
+Manifold should use the record core first as an embedded component. Its boundaries should nevertheless permit later use as a local service, portable repository format, or backend for other AI cockpits, harnesses, command-line tools, editor integrations, and import utilities.
+
+The cockpit attracts daily use. The record core makes the resulting work survive.
+
 ## First Goal
 
 The first useful version should be practical for daily use.
@@ -56,7 +102,7 @@ A user should be able to choose an AI, enter a prompt by typing or speaking, rea
 
 The system should store the complete observable conversation through a common local model. Imported material should remain distinguishable from native capture, with the original artifact preserved unchanged whenever possible.
 
-The first version does not require automatic routing, fine-tuning, or multi-agent orchestration. It should preserve enough information to support later evaluation of model quality, latency, cost, privacy, and reliability on the user’s actual work.
+The first version does not require automatic routing, fine-tuning, multi-agent orchestration, or a separately deployed record service. It should establish clean record-core boundaries and preserve enough information to support later evaluation of model quality, latency, cost, privacy, and reliability on the user’s actual work.
 
 ## Guiding Principles
 
@@ -90,4 +136,6 @@ The cockpit must be pleasant and reliable enough for daily use. A library is onl
 
 Manifold succeeds first when it becomes a genuinely useful accessible AI cockpit for its developer and a small number of real users.
 
-It succeeds in the longer term when it becomes the user-controlled harness and stable context layer through which people can use, compare, and change AI systems without surrendering ownership of their work.
+It succeeds in the longer term when it becomes the user-owned workspace and continuity layer through which people can use, compare, and change AI systems without surrendering ownership of their work.
+
+The record core succeeds when Manifold depends on it cleanly and other clients could use it without inheriting Manifold’s user interface or provider-specific assumptions.
