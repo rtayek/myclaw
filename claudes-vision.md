@@ -30,6 +30,8 @@ One accessible desktop app that talks to many AIs:
 
 - Claude, local Ollama models, and other backends in one interface,
   switchable by keystroke.
+- Multiple independent sessions that can be opened, arranged, detached,
+  restored, and used across one or more monitors.
 - Large, scalable text everywhere.
 - Keyboard, voice, touch, and mouse — any one of them alone is enough.
 - Speech in: prompt by dictation. Speech out: responses read aloud.
@@ -48,6 +50,8 @@ durable and useful:
 - Search across every conversation, regardless of which AI answered.
 - Organize conversations by project.
 - Generate concise handoffs to continue work with another AI.
+- Keep summaries, tags, indexes, extracted decisions, and other
+  interpretations separate from the original captured record.
 - Import old conversations, best-effort and last. Native capture and
   imported material stay clearly distinct; the original import file is
   kept unchanged so a better parser can re-read it later; known gaps
@@ -82,11 +86,20 @@ abstractions keep those doors open; the accessible desktop comes first.
 
 ## Guiding principles
 
+- The fundamental unit is the session, not the model. Models and
+  backends can change; the session is the durable record of the user's
+  work.
 - If it cannot be done by reading large text, pressing keys, and
   speaking, it is not done.
 - Never claim an imported conversation is complete unless the source
   proves it: preserve what arrives, record what's known, flag what's
   missing.
+- Capture is independent of presentation: the original session record
+  is preserved, and conversation, detail, and raw views are projections
+  of that record.
+- Work is organized around projects, sessions, and user goals, not
+  provider names. A backend is a worker inside the project, not the
+  place where the work belongs.
 - The client should not need to know whether a backend uses a local process, local HTTP service, socket, remote server, or cloud API.
 - Everything the app stores about you, you can inspect, correct,
   export, or delete. Owning your data means the right to erase it, not

@@ -1,6 +1,6 @@
 # Summary of MyClaw and Manifold Switchboard Vision Statements
 
-    I have analyzed the three vision statement files located in the myclaw workspace:
+    I have analyzed the three AI-authored vision statement files located in the myclaw workspace:
     1. claudes-vision.md (Claude's perspective)
     2. geminis-vision.md (Gemini's perspective)
     3. openais-vision.md (OpenAI's perspective)
@@ -28,18 +28,29 @@
     All three LLM vision documents now align on the core decoupling architectural rule:
     * **Backend Decoupling:** The client should not need to know whether a backend uses a local
   process, local HTTP service, socket, remote server, or cloud API.
+    * **Session-Centered Design:** The fundamental unit is the session, not the model. Models and
+  backends can change; the session is the durable record of the user's work.
+    * **Capture Before Presentation:** The original session record is preserved independently from
+  the views that show it. Conversation, detail, and raw views are projections of the stored record.
+    * **Originals vs. Derived Artifacts:** Summaries, tags, indexes, extracted decisions, embeddings,
+  and project notes remain separate from the original captured or imported record.
+    * **Project-First Organization:** Work is organized around projects, sessions, and user goals
+  rather than provider names. A backend is a worker inside the project, not the place where the work
+  belongs.
 
     ### Two-Stage Roadmap
     1. **Stage One: The Cockpit (Active Interface)**
        * Single keyboard-centric, voice-capable desktop client talking to multiple AI backends
   (Claude, local Ollama models, Gemini, etc.).
+       * Multiple independent sessions and windows that can be opened, arranged, detached,
+  restored, and used across one or more monitors.
        * Large, scalable text with support for speech-in (dictation) and speech-out (Text-to-Speech).
        * Transparent, readable, and copyable errors (never trapped in unreachable dialogues).
        * Native capture: All transactions are written locally at full fidelity, with precise metadata
   (which model, parameters, timestamp).
     2. **Stage Two: The Library (The Archive)**
        * Local, cross-provider searchable archive of all historical conversations.
-       * Organization of chats by project.
+       * Organization of chats by project, session, and user goal rather than by provider.
        * Best-effort, lossless import of historical data (always distinguished from native capture,
   preserving original raw files).
        * Context-aware handoff generation to continue a thread with a different AI model.

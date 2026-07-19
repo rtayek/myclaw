@@ -8,6 +8,8 @@ Its first purpose is simple: make it easier to use different AI systems through 
 
 The model is not the whole product. Manifold should control the relationship among the user, their context, their tools, and whichever local or cloud models are useful for the task.
 
+The fundamental unit is the session, not the model. Models and backends can change; the session is the durable record of the user's work.
+
 Every conversation handled through Manifold will be preserved locally as completely as Manifold can observe it. Imported conversations will be preserved as completely as their source permits, with their origin, acquisition method, and known limitations recorded.
 
 As Manifold grows, these conversations will become part of a common library that can organize work by project, search across conversations, preserve provenance, support model evaluation, and export information in readable or structured forms.
@@ -19,6 +21,7 @@ Models will change. The user’s conversations, projects, preferences, evaluatio
 Manifold should provide:
 
 * one accessible interface for several AI backends;
+* multiple independent sessions and windows that can be opened, arranged, detached, restored, and used across one or more monitors;
 * keyboard, touch, voice, mouse, and trackpad interaction;
 * large scalable text, reliable speech output, and truthful plain-language errors that can be read aloud, copied, and expanded to show technical detail;
 * local preservation of conversations and source artifacts;
@@ -57,9 +60,15 @@ Every saved conversation should belong to the user, remain on the user’s machi
 
 The client should not need to know whether a backend uses a local process, local HTTP service, socket, remote server, or cloud API.
 
+Capture should be independent of presentation. The original session record should be preserved, while conversation, detail, and raw views remain projections of that record.
+
 Manifold should never claim that an imported conversation is complete unless the source establishes that. It should preserve what it receives, record what is known, and identify what may be missing.
 
 Personal state and AI-generated interpretations should be visible, distinguishable from source records, editable, exportable, and deletable by the user. Owning data includes the right to erase it, not merely to keep it.
+
+Summaries, tags, indexes, extracted decisions, embeddings, project notes, and other interpretations should remain derived artifacts. They should never silently rewrite the original captured or imported record.
+
+Work should be organized around projects, sessions, and user goals, not provider names. A backend is a worker inside the project, not the place where the work belongs.
 
 Privacy and capability controls should be explicit and enforced by the system, not merely suggested by the interface.
 
