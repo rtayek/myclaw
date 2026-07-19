@@ -26,11 +26,13 @@ Manifold should provide:
 * large scalable text, reliable speech output, and truthful plain-language errors that can be read aloud, copied, and expanded to show technical detail;
 * local preservation of conversations and source artifacts;
 * explicit provenance, including provider, model, time, relevant settings when known, acquisition method, preservation fidelity, and whether execution was local or remote;
+* explicit user control over which conversations, files, project materials, preferences, and other context are disclosed to each backend;
 * project organization and cross-provider search;
 * best-effort import of existing conversations in whatever forms providers make available;
 * provider-independent storage and export;
 * concise handoffs for continuing work with another AI;
-* support for comparing models on the user’s own work rather than treating provider claims or public benchmarks as authoritative.
+* support for comparing models on the user’s own work rather than treating provider claims or public benchmarks as authoritative;
+* preservation of useful execution evidence, such as latency, cost when known, failures, retries, selected model, and user judgment of the result.
 
 Local, open-weight, and cloud models should be treated as peers with different capabilities, costs, latency, privacy properties, and resource requirements. A local model should not be considered merely an inferior fallback, and an expensive frontier model should not be assumed to be the best choice for every task.
 
@@ -38,9 +40,11 @@ The accessible cockpit is the first product. Daily use of that cockpit builds th
 
 Reliable forward capture is foundational. Importing older conversations is valuable but secondary and necessarily limited by what their sources expose.
 
-The conversation library is the stable context layer that makes the collection durable, searchable, portable, and increasingly useful as models and providers change.
+The conversation library is the stable context layer that makes the collection durable, searchable, portable, and increasingly useful as models and providers change. It should allow the user to reuse accumulated knowledge without surrendering that knowledge to any one model provider.
 
-Future versions may route work among models, use a local model for ordinary tasks, or escalate difficult work to a specialized or frontier model. That orchestration should be evidence-based, visible to the user, and supported by contribution-level provenance when several models participate in one result.
+Over time, Manifold should support a personal evaluation loop grounded in the user’s actual tasks and outcomes. The purpose is not to maximize token volume or favor a fashionable model, but to help the user obtain the best useful result under their chosen constraints of quality, cost, latency, privacy, reliability, and local compute.
+
+Future versions may route work among models, use a local model for ordinary tasks, or escalate difficult work to a specialized or frontier model. That orchestration should be evidence-based, visible to the user, reversible when practical, and supported by contribution-level provenance when several models participate in one result.
 
 ## First Goal
 
@@ -70,9 +74,13 @@ Summaries, tags, indexes, extracted decisions, embeddings, project notes, and ot
 
 Work should be organized around projects, sessions, and user goals, not provider names. A backend is a worker inside the project, not the place where the work belongs.
 
+The user’s context is part of the user’s durable intellectual work. Manifold should not silently expose, duplicate, or bind that context to a provider. Context disclosure should be deliberate, inspectable, and limited to what the task requires.
+
 Privacy and capability controls should be explicit and enforced by the system, not merely suggested by the interface.
 
 Model choice should follow the user’s task, constraints, and evidence from real use. Manifold should not privilege a provider, model family, or deployment method merely because it is fashionable, expensive, or currently at the top of a public benchmark.
+
+Evaluation should measure useful outcomes rather than activity alone. More tokens, more agents, or more compute do not by themselves mean more value.
 
 The cockpit must be pleasant and reliable enough for daily use. A library is only as complete as the conversations people choose to conduct through it.
 
