@@ -23,6 +23,24 @@ no permission, no vendor cooperation required. Own your conversations
 on the way in, because getting them back out later is only going to
 get harder.
 
+## What makes it different
+
+Harnesses are becoming abundant, and nearly all of them are built for
+a task: their ideal end state is the agent working while you stop
+watching. This one is built for a person who is present the whole
+time and needs the interaction itself to be survivable. That pulls
+the opposite way on almost every design decision — they add panes and
+status to scan, this removes anything that must be scanned.
+
+The second difference is that the archive is the product, not
+exhaust. A tool sold by the seat has no reason to make your history
+easy to take elsewhere. That is a conflict of interest, not a
+capability gap, which is why it lasts.
+
+Multi-backend support, local models, search, and handoffs are table
+stakes, not the pitch. Any funded team could build them in a quarter.
+None of them will build for people who cannot watch the screen.
+
 ## The product, in two stages
 
 ### Stage one: the cockpit
@@ -101,6 +119,13 @@ automatic routing between local and hosted models. The core
 abstractions keep those doors open; the accessible desktop comes
 first.
 
+Capture, persistence, and integrity are built as a self-contained
+layer with no interface dependencies, documented schema, and stable
+record identity — so it could be extracted for others later. It is
+not published or promised as a library until someone other than the
+developer needs it. The discipline is the point; the packaging can
+wait.
+
 Manifold Switchboard is an accessible interface that happens to speak
 to many AIs — not an orchestration platform, not a compliance product,
 not a code-auditing tool. That distinction is what keeps it buildable
@@ -113,6 +138,10 @@ by one person and useful to people no one else is building for.
   user's work.
 - If it cannot be done by reading large text, pressing keys, and
   speaking, it is not done.
+- The stored record is the source of truth, not a log written
+  alongside it. It is append-only and content-hashed, so a session can
+  be shown to be complete and unaltered rather than merely claimed to
+  be.
 - Capture is independent of presentation: the original session record
   is preserved, and conversation, detail, and raw views are
   projections of that record.
@@ -124,6 +153,9 @@ by one person and useful to people no one else is building for.
   place where the work belongs.
 - The client should not need to know whether a backend uses a local
   process, local HTTP service, socket, remote server, or cloud API.
+- Backends are disposable. The best model for a task will change
+  several times a year, so adding, replacing, or retiring one should
+  be a small, routine act that leaves saved sessions untouched.
 - Everything the app stores about you, you can inspect, correct,
   export, or delete. Owning your data means the right to erase it,
   not only to keep it.
@@ -131,6 +163,3 @@ by one person and useful to people no one else is building for.
   machine, in a format they can read without us.
 - The library is only as complete as the cockpit is pleasant. Making
   people want to live here is a data-integrity feature.
-- No model is ranked in the abstract. A model is only ever better or
-  worse for a task the user actually did — the vendor's benchmark is
-  not evidence, the user's own saved history is.
