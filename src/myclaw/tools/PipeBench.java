@@ -41,51 +41,52 @@ public final class PipeBench {
                 .redirectErrorStream(false)
                 .start();
 
-        Writer stdin = new OutputStreamWriter(proc.getOutputStream(), StandardCharsets.UTF_8);
-        BufferedReader stdout = new BufferedReader(
-                new InputStreamReader(proc.getInputStream(), StandardCharsets.UTF_8));
+        try (Writer stdin = new OutputStreamWriter(
+                proc.getOutputStream(), StandardCharsets.UTF_8)) {
+            BufferedReader stdout = new BufferedReader(
+                    new InputStreamReader(proc.getInputStream(), StandardCharsets.UTF_8));
 
-        // Hands each turn-complete line from the reader thread to the main thread.
-        SynchronousQueue<String> turnDone = new SynchronousQueue<>();
+            // Hands each turn-complete line from the reader thread to the main thread.
+            SynchronousQueue<String> turnDone = new SynchronousQueue<>();
 
-        Thread reader = new Thread(() -> {
-            try {
-                String line;
-                while ((line = stdout.readLine()) != null) {
-                    // A finished turn arrives as a JSON line with "type":"result".
-                    if (line.contains("\"type\":\"result\"")) {
-                        turnDone.put(line);
+            Thread reader = new Thread(() -> {
+                try {
+                    String line;
+                    while ((line = stdout.readLine()) != null) {
+                        // A finished turn arrives as a JSON line with "type":"result".
+                        if (line.contains("\"type\":\"result\"")) {
+                            turnDone.put(line);
+                        }
                     }
+                } catch (Exception ignored) {
                 }
-            } catch (Exception ignored) {
+            });
+            reader.setDaemon(true);
+            reader.start();
+
+            // Warmup turn - pays first-turn setup, not counted.
+            sendPrompt(stdin, "Reply with exactly: READY");
+            turnDone.take();
+            System.out.println("Session warm. Timing begins.");
+            System.out.println();
+
+            List<Long> times = new ArrayList<>();
+            for (int i = 0; i < turns; i++) {
+                long start = System.nanoTime();
+                sendPrompt(stdin, PROMPTS[i % PROMPTS.length]);
+                String resultLine = turnDone.take();
+                long ms = (System.nanoTime() - start) / 1_000_000;
+                times.add(ms);
+                System.out.printf("turn %2d: %6d ms   %s%n", i + 1, ms, extractApiMs(resultLine));
             }
-        });
-        reader.setDaemon(true);
-        reader.start();
 
-        // Warmup turn - pays first-turn setup, not counted.
-        sendPrompt(stdin, "Reply with exactly: READY");
-        turnDone.take();
-        System.out.println("Session warm. Timing begins.");
-        System.out.println();
-
-        List<Long> times = new ArrayList<>();
-        for (int i = 0; i < turns; i++) {
-            long start = System.nanoTime();
-            sendPrompt(stdin, PROMPTS[i % PROMPTS.length]);
-            String resultLine = turnDone.take();
-            long ms = (System.nanoTime() - start) / 1_000_000;
-            times.add(ms);
-            System.out.printf("turn %2d: %6d ms   %s%n", i + 1, ms, extractApiMs(resultLine));
+            long min = times.stream().mapToLong(Long::longValue).min().orElse(0);
+            long max = times.stream().mapToLong(Long::longValue).max().orElse(0);
+            long avg = Math.round(times.stream().mapToLong(Long::longValue).average().orElse(0));
+            System.out.println();
+            System.out.println("warm round trip: min " + min + "  avg " + avg + "  max " + max + " ms");
         }
 
-        long min = times.stream().mapToLong(Long::longValue).min().orElse(0);
-        long max = times.stream().mapToLong(Long::longValue).max().orElse(0);
-        long avg = Math.round(times.stream().mapToLong(Long::longValue).average().orElse(0));
-        System.out.println();
-        System.out.println("warm round trip: min " + min + "  avg " + avg + "  max " + max + " ms");
-
-        stdin.close();   // closing stdin tells the CLI to finish and exit
         proc.waitFor();
     }
 
