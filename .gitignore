@@ -35,6 +35,7 @@ ehthumbs.db
 ###############################################################################
 .gradle/
 .gradle-build/
+.codex-gradle-build/
 gradle-build/
 build/
 **/build/

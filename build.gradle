@@ -6,7 +6,8 @@ plugins {
 group = 'com.ray'
 version = '0.1.0'
 
-layout.buildDirectory = layout.projectDirectory.dir('.gradle-build')
+def buildDirectoryName = project.findProperty('myclawBuildDirectory') ?: '.gradle-build'
+layout.buildDirectory = layout.projectDirectory.dir(buildDirectoryName.toString())
 
 java {
     toolchain {
@@ -69,6 +70,7 @@ tasks.register('prbe') {
 dependencies {
     implementation 'com.formdev:flatlaf:3.5.4'
     implementation 'com.google.code.gson:gson:2.11.0'
+    implementation 'org.xerial:sqlite-jdbc:3.46.1.0'
     testImplementation 'org.junit.jupiter:junit-jupiter:6.0.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:6.0.0'
 }
