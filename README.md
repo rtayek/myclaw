@@ -1,13 +1,22 @@
-# myclaw
+# MyClaw
 
-`myclaw` is an accessible Java desktop workbench for local, cloud, and command-line AI systems. It combines readable conversations, zoomable and detachable panes, keyboard-first operation, transparent backend control, speech input and output, and durable chat history in one native application.
+> Local-first, desktop-native AI agent runtime.
 
-The application is intended to support blind and visually impaired users through screen-reader compatibility, scalable text, keyboard navigation, and spoken responses. It is intended to support deaf and hard-of-hearing users through speech transcription, visible status cues, complete text transcripts, and text alternatives for every important function.
+## Overview
+MyClaw is a 3-tier desktop runtime linking a native Java interface to a socket-based backend agent engine.
 
-## First Goal
+```text
+[ Java Desktop UI ] <---> [ Core Broker ] <---(Sockets)---> [ Backend Engine ]
+```
 
-Build a free, reliable desktop client that is pleasant enough for daily use with Claude CLI and local Ollama models such as `glm4:9b`. The first release should emphasize readable transcripts, accessible controls, simple backend selection, clear errors, and user-owned conversation records.
+## Core Principles
+* **Local-First & Private:** Desktop-native execution leveraging local models (Ollama `glm4:9b`) and CLI engines (Claude CLI) with full user data sovereignty.
+* **Accessible Desktop Control:** Native Java desktop UI tailored for low-vision and blind developers (screen reader support, scalable high contrast, keyboard-only navigation, speech I/O).
+* **24/7 Persistence & Telemetry:** Append-only transaction logging (`.jsonl` telemetry and `.md` human-readable transcripts) supporting continuous background agent operation.
+* **Modular Skill Engine:** Execution of modular `SKILL.md` workflows and hybrid agent loops.
 
-Later goals include saved and searchable conversations, speech recognition and synthesis, model installation and management, document and project workspaces, multi-model comparison, and extraction of durable knowledge from chats.
-
-See [HOWTO.md](HOWTO.md) for build, test, run, and desktop-client details.
+## Core Documentation
+* [VISION.md](VISION.md) - Accessibility vision, design philosophy, and spatial serenity layout.
+* [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture, 3-tier model, and thread isolation.
+* [HOWTO.md](HOWTO.md) - Build, test, execution, and commit instructions.
+* [ROADMAP.md](ROADMAP.md) - Project milestones, current capabilities, and future vision.

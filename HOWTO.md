@@ -1,6 +1,4 @@
-# HOWTO
-
-Short command reference for myclaw.
+# MyClaw HOWTO & Quick Start
 
 ## Build and Test
 
@@ -10,30 +8,40 @@ Short command reference for myclaw.
 ./gradlew integrationTest
 ```
 
-Explicit real-backend checks:
-
+### Backend Smoke Tests
 ```sh
 ./gradlew claudeSmokeTest
 ./gradlew ollamaSmokeTest
 ./gradlew latencyTest
 ```
 
-## CLI
+## Running MyClaw
 
-```sh
-java -jar .gradle-build/libs/myclaw.jar claude "Say exactly: OK"
-java -jar .gradle-build/libs/myclaw.jar glm "Say exactly: GLM_OK"
-printf '%s\n' 'Say exactly: OK' | ./gradlew run --args='claude -'
-```
-
-## Desktop
-
+### Desktop Application
 ```sh
 ./gradlew runDesktop
 ```
 
-## Notes
+### Command-Line Interface (CLI)
+```sh
+# Direct JAR execution
+java -jar .gradle-build/libs/myclaw.jar claude "Say exactly: OK"
+java -jar .gradle-build/libs/myclaw.jar glm "Say exactly: GLM_OK"
 
-`claude` and `ollama` must be on the PATH of the Java process. The `glm`
-backend uses the local Ollama model `glm4:9b`. Runs write Markdown transcripts
-under `runs/`.
+# Piped prompt via Gradle
+printf '%s\n' 'Say exactly: OK' | ./gradlew run --args='claude -'
+```
+
+## Developer Guidelines & Git Workflow
+* **Environment:** Windows 11, Java 25, Gradle, Eclipse, Git Bash.
+* **Paste-Safe Commit Style:** Use commit message files instead of inline `-m` flags:
+  ```sh
+  cat > commit-message.txt <<'EOF'
+  Commit title
+
+  Detailed description of changes.
+  EOF
+  git add -A
+  git commit -F commit-message.txt
+  rm commit-message.txt
+  ```
