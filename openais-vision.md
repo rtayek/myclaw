@@ -53,6 +53,10 @@ Manifold should provide:
 * best-effort import of existing conversations in whatever forms providers make available;
 * provider-independent storage and export;
 * concise handoffs for continuing work with another AI;
+* local reusable skills that can add selected instructions and procedures to a request;
+* curated shared, project, and tool-specific memory stored in readable standard files;
+* scheduled prompts and summaries when explicitly configured;
+* supervised agent loops whose prompts, tool calls, changes, results, and continuation decisions remain visible;
 * support for comparing models on the user’s own work rather than treating provider claims or public benchmarks as authoritative;
 * preservation of useful execution evidence, such as latency, cost when known, local compute used, failures, retries, selected model, and user judgment of the result.
 
@@ -69,6 +73,8 @@ The conversation library is the stable context layer that makes the collection d
 Over time, Manifold should support a personal evaluation loop grounded in the user’s actual tasks and outcomes. The purpose is not to maximize token volume or favor a fashionable model, but to help the user obtain the best useful result under their chosen constraints of quality, cost, latency, privacy, reliability, and local compute.
 
 Future versions may route work among models, use a local or open-weight model for ordinary tasks, keep sensitive work close to the user's machine when practical, or escalate difficult work to a specialized or frontier model. That orchestration should be evidence-based, visible to the user, reversible when practical, and supported by contribution-level provenance when several models participate in one result.
+
+Manifold should support a user who remains present and directs work step by step, but it should not require the user to watch every operation. Tasks and agent loops may run unattended when the user explicitly chooses a policy that permits it. Loops should be bounded by default through limits such as steps, time, cost, tools, files, or required approvals; those defaults may be relaxed deliberately for experiments or trusted workflows. Whether supervised or unattended, the resulting record should make the work understandable afterward.
 
 ## Record Core
 
@@ -104,6 +110,8 @@ The system should store the complete observable conversation through a common lo
 
 The first version does not require automatic routing, fine-tuning, multi-agent orchestration, or a separately deployed record service. It should establish clean record-core boundaries and preserve enough information to support later evaluation of model quality, latency, cost, privacy, and reliability on the user’s actual work.
 
+Skills, curated memory, scheduling, and agent loops are later capabilities built on the same session and event record. Their first implementations should be small and inspectable: manually selected local skills, readable Markdown memory, explicitly configured schedules, and a coding loop in which an external coding tool edits files, tests are run, failures are returned to the tool, and the user reviews the resulting diff.
+
 ## Guiding Principles
 
 If an essential function cannot be performed through large readable text, keyboard, touch, or voice, it is incomplete.
@@ -129,6 +137,8 @@ Privacy and capability controls should be explicit and enforced by the system, n
 Model choice should follow the user’s task, constraints, and evidence from real use. Manifold should not privilege a provider, model family, or deployment method merely because it is fashionable, expensive, or currently at the top of a public benchmark.
 
 Evaluation should measure useful outcomes rather than activity alone. More tokens, more agents, more energy, or more remote compute do not by themselves mean more value.
+
+Present-user control and bounded execution are useful defaults, not permanent prohibitions. The user should be able to choose broader execution policies, including unattended work, while retaining clear records, understandable limits, stop controls where practical, and reviewable results.
 
 The cockpit must be pleasant and reliable enough for daily use. A library is only as complete as the conversations people choose to conduct through it.
 
