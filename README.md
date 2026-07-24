@@ -1,41 +1,51 @@
 # MyClaw
 
-> Local-first, desktop-native AI workbench built for accessibility.
+MyClaw is an accessible, local-first Java desktop workbench for using
+interchangeable AI backends while keeping conversations and artifacts in
+durable user-owned records.
 
-## Overview
+## What Exists Now
 
-MyClaw is a 3-tier desktop runtime linking a native Java interface to a
-socket-based backend engine.
+The desktop is a Swing application that runs in one JVM. It constructs
+`PromptService` directly and uses in-process backend adapters for Claude CLI
+and Ollama `glm4:9b`.
 
 ```text
-[ Java Desktop UI ] <---> [ Core Broker ] <---(Sockets)---> [ Backend Engine ]
+Java Desktop
+    |
+PromptService
+    |
+in-process AiBackend implementations
 ```
 
-It is built for a person who is present at the keyboard the whole time and
-needs the interaction itself to be survivable — not for an agent working
-while you stop watching.
+The current application can run from Gradle, submit prompts to the registered
+backends, and write readable Markdown transcripts under `runs/`.
 
-## Core Principles
+## Intended Direction
 
-* **Local-First & Private:** Desktop-native execution using local models
-  (Ollama `glm4:9b`) and CLI engines (Claude CLI). Nothing leaves your
-  machine except the prompts you choose to send.
-* **You Own the Record:** Every exchange is captured on the way in, at full
-  fidelity, to append-only files on your disk — `.jsonl` telemetry and
-  human-readable `.md` transcripts. No export, no vendor cooperation
-  required.
-* **Accessible Desktop Control:** Native Java UI for blind, low-vision,
-  deaf, and hard-of-hearing developers — screen reader support, scalable
-  high-contrast text, keyboard-only navigation, speech in and out.
-* **Backends Are Disposable:** The client does not need to know whether a
-  backend is a local process, a socket, or a cloud API. The session is the
-  durable unit; models change.
+The target architecture separates the accessible Java desktop from backend
+execution through a local socket boundary:
 
-## Core Documentation
+```text
+Java Desktop Frontend
+        |
+       Core
+        |
+ local socket protocol
+        |
+ Backend Process
+```
 
-* [VISION.md](VISION.md) — mission, what this is and is not, scope
-  boundaries.
-* [ARCHITECTURE.md](ARCHITECTURE.md) — 3-tier model, socket protocol,
-  capture pipeline.
-* [HOWTO.md](HOWTO.md) — build, test, run, commit.
-* [ROADMAP.md](ROADMAP.md) — current capabilities and planned work.
+That boundary is the intended direction for model execution, tools,
+scheduled work, and policy-governed agent loops. MyClaw prioritizes
+accessible, inspectable interaction. It may also perform supervised or
+unattended work under explicit user-selected policies.
+
+## Authoritative Documentation
+
+- [VISION.md](VISION.md) - purpose and principles.
+- [ARCHITECTURE.md](ARCHITECTURE.md) - current implementation and target
+  architecture.
+- [HOWTO.md](HOWTO.md) - build, test, run, and workflow notes.
+- [ROADMAP.md](ROADMAP.md) - implemented, experimental, designed, and planned
+  work.

@@ -1,105 +1,173 @@
 # System Architecture
 
-## 3-Tier Model
+## Current Implementation
 
-MyClaw runs as a local, 3-tier desktop runtime:
+The desktop currently runs the prompt path in one JVM. `DesktopMain`
+constructs `PromptService`, `ApplicationBackends.create()` registers the
+available backend adapters, and the Swing frame submits directly through that
+service.
 
 ```text
-[ Java Desktop UI ] <---> [ Core Broker ] <---(Sockets)---> [ Backend Agent Engine ]
+DesktopMain
+    |
+PromptService
+    |
+AiBackend implementations
 ```
 
-* **Java Desktop UI (frontend):** accessible Swing application — high
-  contrast, screen reader compatible, keyboard-first navigation.
-* **Core Broker:** event-driven Java core owning session state, prompt
-  routing, thread management, and transcript persistence.
-* **Backend Agent Engine:** execution layer (Ollama, Claude CLI) reached
-  over loopback TCP sockets.
+Current integrated pieces:
 
-The client never needs to know whether a backend is a local process, a
-socket, a local HTTP service, or a cloud API. That boundary lives in
-`PromptService`, which owns backend selection, request creation, execution,
-error normalization, and transcript writes.
+- `src/myclaw/desktop/DesktopMain.java` launches the Swing desktop.
+- `src/myclaw/application/PromptService.java` owns backend lookup, request
+  creation, backend execution, error normalization, and transcript writes.
+- `src/myclaw/application/ApplicationBackends.java` registers backend IDs
+  `claude` and `glm`.
+- `src/myclaw/backend/*` contains the Claude CLI and Ollama command-backed
+  backend adapters.
+- `src/myclaw/session/*` contains session event types, in-memory and SQLite
+  stores, and projection code.
+- `src/myclaw/transport/socket/*` contains an implemented socket transport
+  with integration tests, but the desktop does not yet use it as its normal
+  execution path.
 
-## Socket Transport
+The current desktop writes Markdown transcripts through `PromptService`.
+Session event storage exists, but Markdown transcript generation has not yet
+been fully consolidated around replayable session events.
 
-Bound to `127.0.0.1` only, on a configurable port. Multiple connections are
-supported; requests within one connection are strictly sequential — read a
-frame, process it fully, write one terminal response, then read the next.
-A client needing parallel work opens multiple connections.
+## Target Process Architecture
 
-**Framing:** newline-delimited UTF-8 JSON. One compact JSON object followed
-by a single newline byte. JSON is never pretty-printed on the wire; embedded
-line breaks are escaped as `\n` and never appear as literal framing
-newlines. An optional trailing `\r` is accepted. Request frames are size-
-capped (default 1 MiB) rather than read through an unbounded path.
+The intended architecture separates presentation, application state, and
+backend execution:
 
-**Protocol version 1 operations:** `health`, `listBackends`, `chat`.
+```text
+Java Desktop Frontend
+        |
+       Core
+        |
+     sockets
+        |
+ Backend Process
+```
+
+Responsibilities:
+
+- **Frontend:** accessible Java desktop presentation and input, including
+  keyboard flow, screen-reader friendly text, high-contrast views, speech, and
+  predictable focus behavior.
+- **Core:** application state, sessions, context assembly, backend selection,
+  orchestration policy, approvals, and persistence coordination.
+- **Socket transport:** provider-neutral process boundary between Core and
+  backend execution.
+- **Backend process:** model calls, tool execution, scheduled jobs, and agent
+  loops.
+- **Persistence:** source records, transcripts, replay, indexes, summaries,
+  and derived artifacts.
+
+The target process split is not yet the desktop's integrated path. Related
+classes and tests should be treated as implementation progress, not evidence
+that the full runtime separation is complete.
+
+## Socket Protocol
+
+Implemented transport details:
+
+- Binds to `127.0.0.1`.
+- Port is supplied through `SocketServerConfig`; tests commonly use port `0`
+  for an ephemeral port.
+- Frames are newline-delimited compact UTF-8 JSON objects.
+- Request frames are size-capped; the default maximum is 1 MiB.
+- Multiple client connections are accepted.
+- Requests on one connection are processed sequentially.
+- Protocol version 1 operations are `health`, `listBackends`, and `chat`.
+- `chat` accepts `backendId`, `prompt`, and optional `profile`.
+- Supported profiles are the default general profile and `guided-teaching`.
+
+Example frames:
 
 ```json
 {"requestId":"1","operation":"health"}
-{"requestId":"1","status":"ok","protocolVersion":1}
-
-{"requestId":"3","operation":"chat","backendId":"ollama-qwen","prompt":"Explain recursion."}
+{"requestId":"2","operation":"listBackends"}
+{"requestId":"3","operation":"chat","backendId":"glm","prompt":"Explain recursion."}
 ```
 
-An omitted `profile` defaults to `GENERAL`; `guided-teaching` is the other
-value. Not in scope for v1: streaming, cancellation, pipelining, auth, TLS,
-remote binding, conversation IDs, named pipes, Unix-domain sockets.
+Experimental or incomplete:
 
-**Layering rule:** the transport adapter accepts connections, frames and
-validates input, calls `PromptService`, and serializes responses. It must
-not contain backend-specific behavior, command construction, prompt
-construction, transcript policy, or any UI logic. It lives outside the
-application and backend packages, in `myclaw.transport.socket`.
+- Running the socket server as the desktop's normal backend path.
+- A packaged backend process launcher.
+- Health and error propagation across the full desktop/core/backend boundary.
 
-## Capture, Hash, Persist
+Proposed later operations and capabilities:
 
-Data moves through a thread-isolated pipeline so the UI never stalls:
+- Streaming responses.
+- Cancellation.
+- Conversation and session identifiers in protocol messages.
+- Tool execution.
+- Scheduled jobs.
+- Agent-loop control messages.
+- Stronger process lifecycle management.
+
+Not currently in scope for the local socket protocol: remote binding by
+default, TLS as a loopback requirement, or exposing MyClaw as a hosted public
+service.
+
+## Sessions and Persistence
+
+Sessions are the durable product unit. A session should preserve enough source
+record to explain what happened, replay useful views, and move between models
+or providers without losing context.
+
+The target persistence model separates source records from projections:
+
+- Source records: prompts, responses, selected backend, policy decisions,
+  tool calls, failures, timestamps, and artifact references.
+- Transcripts: readable Markdown derived from the source record.
+- Replay: reconstructable session views from stored events.
+- Derived artifacts: summaries, tags, indexes, and handoff packets that never
+  silently rewrite the source record.
+
+Current code includes session event stores and projections, while the
+integrated prompt path still writes Markdown transcripts directly. A future
+cleanup should remove duplicate transcript paths and derive readable
+transcripts from session events.
+
+## Skills, Memory, Scheduling, and Agent Loops
+
+Skills, memory, scheduling, and agent loops are optional extensions to the
+desktop workbench. They should remain inspectable and policy-governed rather
+than becoming a hidden autonomous layer.
+
+Local skills should be loaded from user-controlled files, such as `SKILL.md`,
+with progressive disclosure: index concise metadata first, then load detailed
+instructions only when relevant.
+
+Memory should be curated, local, and tied to sessions and projects. Scheduled
+work should record what policy authorized it, what it touched, and what it
+produced.
+
+The first coding loop should be simple and review-centered:
 
 ```text
-CaptureService -> HashService -> PersistenceService -> Routing
+Claude Code or Codex edits files
+    |
+Gradle runs tests
+    |
+agent inspects failures
+    |
+agent revises
+    |
+user reviews the diff
 ```
 
-1. **`CaptureService`** — non-blocking NIO Reactor. A single `Selector`
-   thread demultiplexes loopback capture ports: 7701 voice, 7702 clipboard,
-   7703 compiler alerts, 7704 model stream. Producers can be as simple as
-   `some-daemon | nc 127.0.0.1 7703`.
-2. **`HashService`** — SHA-256 indexing of text blocks and error signatures.
-   Repeated build errors and identical prompts are recognized and not
-   re-run.
-3. **`PersistenceService`** — dual-stream append-only journal: `.jsonl`
-   transactional telemetry plus high-contrast `.md` transcripts kept
-   readable for screen readers.
-4. **Routing** — projects output streams to display regions and screen
-   reader buffers.
+Execution policy should support:
 
-The journal is authoritative. Transcripts, views, and audio are replayable
-projections derived from it; derived artifacts never mutate the original
-record.
+- Maximum steps.
+- Elapsed time.
+- Cost or token budget.
+- Allowed tools.
+- Allowed directories.
+- Approval requirements.
+- Stop conditions.
+- Unattended execution setting.
 
-## Session Runtime
-
-`SessionRuntime` wraps `PromptService.submit(...)` and records immutable
-session events before and after the call, without disturbing the existing
-prompt path. `AiBackend`, `AiRequest`, `AiResponse`, prompt profiles, and
-transcript classes are unchanged. Event payloads use Gson, already a project
-dependency.
-
-Markdown is currently written twice — once as a `PromptService` side effect,
-once from session events. A later pass will derive Markdown solely from
-session events once callers move to the runtime boundary.
-
-## Modular Skills
-
-Workflows are defined in `SKILL.md` files under `.agents/skills/`. Each is a
-directory with YAML frontmatter (name, description, triggers) plus a
-natural-language body.
-
-Loading uses progressive disclosure: index only the frontmatter at startup
-(~20 tokens per skill), match the incoming prompt against those
-descriptions, and load the full body into context only on a match. Skill
-injection attaches to `PromptService` during request assembly. The format is
-portable, so skills written for other tools can be reused.
-
-Local loading only — see the scope boundaries in `VISION.md` regarding
-public registries.
+Conservative limits should be defaults. Longer runs, broader tool access, or
+unattended execution should require explicit user-selected policy.
