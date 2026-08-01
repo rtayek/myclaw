@@ -1,17 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk-25">
+	<classpathentry kind="src" output="bin/main" path="src">
 		<attributes>
-			<attribute name="module" value="true"/>
+			<attribute name="gradle_scope" value="main"/>
+			<attribute name="gradle_used_by_scope" value="main,test,integrationTest,slowTest,smokeTest"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="src" path="tst/unit"/>
-	<classpathentry kind="src" path="tst/integration"/>
-	<classpathentry kind="src" path="tst/smoke"/>
-	<classpathentry kind="src" path="tst/slow"/>
-	<classpathentry kind="lib" path="C:/Users/ray/.gradle/caches/modules-2/files-2.1/com.google.code.gson/gson/2.11.0/527175ca6d81050b53bdd4c457a6d6e017626b0e/gson-2.11.0.jar"/>
-	<classpathentry kind="lib" path="C:/Users/ray/.gradle/caches/modules-2/files-2.1/com.formdev/flatlaf/3.5.4/cd61f9fc2550473fdacebc205a68e24a065f6fdf/flatlaf-3.5.4.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
-	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="src" output="bin/test" path="tst/unit">
+		<attributes>
+			<attribute name="gradle_scope" value="test"/>
+			<attribute name="gradle_used_by_scope" value="test"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="bin/integrationTest" path="tst/integration">
+		<attributes>
+			<attribute name="gradle_scope" value="integrationTest"/>
+			<attribute name="gradle_used_by_scope" value="integrationTest"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="bin/smokeTest" path="tst/smoke">
+		<attributes>
+			<attribute name="gradle_scope" value="smokeTest"/>
+			<attribute name="gradle_used_by_scope" value="smokeTest"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="bin/slowTest" path="tst/slow">
+		<attributes>
+			<attribute name="gradle_scope" value="slowTest"/>
+			<attribute name="gradle_used_by_scope" value="slowTest"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-21/"/>
+	<classpathentry kind="con" path="org.eclipse.buildship.core.gradleclasspathcontainer"/>
+	<classpathentry kind="output" path="bin/default"/>
 </classpath>
