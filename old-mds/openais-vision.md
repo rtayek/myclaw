@@ -49,6 +49,7 @@ Manifold should provide:
 * local preservation of conversations and source artifacts;
 * explicit provenance, including provider, model, time, relevant settings when known, acquisition method, preservation fidelity, and whether execution was local or remote;
 * explicit user control over which conversations, files, project materials, preferences, and other context are disclosed to each backend;
+* traceable context bundles showing which records, memories, retrieved data, skills, and instructions were supplied to each invocation and why;
 * project organization and cross-provider search;
 * best-effort import of existing conversations in whatever forms providers make available;
 * provider-independent storage and export;
@@ -57,6 +58,7 @@ Manifold should provide:
 * curated shared, project, and tool-specific memory stored in readable standard files;
 * scheduled prompts and summaries when explicitly configured;
 * supervised agent loops whose prompts, tool calls, changes, results, and continuation decisions remain visible;
+* records of proposed actions, effective identities, approvals, executions, failures, and resulting artifacts without retaining reusable secrets;
 * support for comparing models on the user’s own work rather than treating provider claims or public benchmarks as authoritative;
 * preservation of useful execution evidence, such as latency, cost when known, local compute used, failures, retries, selected model, and user judgment of the result.
 
@@ -87,18 +89,40 @@ That core should own:
 * immutable source artifacts whenever practical;
 * content identity, hashes, and integrity checks;
 * provenance and preservation-fidelity claims;
-* relationships among original records, derived artifacts, and exports;
+* context selections and disclosure records;
+* proposed actions, approvals, executions, and results;
+* identities and authorization references needed to explain an action, without storing reusable credentials;
+* skill identities, versions, digests, sources, and dependencies when skills affect an invocation;
+* relationships among original records, derived artifacts, evaluations, and exports;
 * provider-independent storage and verification.
 
-Original records should remain authoritative. Summaries, tags, indexes, embeddings, handoffs, extracted decisions, and other interpretations should remain derived projections linked to their exact sources.
+Original records should remain authoritative. Summaries, tags, indexes, embeddings, handoffs, extracted decisions, memories, evaluations, and other interpretations should remain derived projections linked to their exact sources.
 
 Hashes can establish byte identity, detect accidental change, support deduplication, and link derived records to exact source artifacts. They cannot prove that a source was complete, accurate, or trustworthy. Content integrity and capture provenance must therefore remain distinct concepts.
 
-The record core should use provider-neutral concepts such as sessions, messages, artifacts, tool invocations, execution metadata, derivations, imports, verification, and export. Provider adapters should translate external events into that common model rather than allowing provider-specific assumptions to define the foundation.
+The record core should use provider-neutral concepts such as sessions, messages, artifacts, activities, agents, tool invocations, execution metadata, context bundles, derivations, imports, verification, and export. Provider adapters should translate external events into that common model rather than allowing provider-specific assumptions to define the foundation.
 
 Manifold should use the record core first as an embedded component. Its boundaries should nevertheless permit later use as a local service, portable repository format, or backend for other AI cockpits, harnesses, command-line tools, editor integrations, and import utilities.
 
 The cockpit attracts daily use. The record core makes the resulting work survive.
+
+## Context, Memory, and Evaluation
+
+Agent memory should not be treated as the permanent record. It is a task-specific projection over preserved history.
+
+Short-term conversational windows, extracted facts, summaries, retrieved project material, skills, and context selected for a particular model call should all remain distinguishable. Manifold should preserve the evidence from which those projections were derived so they can be inspected, rebuilt, corrected, replaced, or deleted.
+
+A context bundle should record not only what was sent to a model, but also how each item entered the bundle. Context may have been selected directly by the user, retrieved by the application, recalled from memory, supplied by a skill, returned by a tool, or inherited from a project policy. Those mechanisms have different meanings and should not be collapsed into one opaque prompt.
+
+Memory services may provide recent messages, confirmed facts, prior decisions, relevant project material, or context constrained by a token budget. Their output should remain linked to the durable records from which it was selected or derived.
+
+Tools and MCP integrations represent actions or access to external systems. Their use should be recorded as activities with inputs, outputs, effective identity, authorization or human approval when applicable, latency, failures, retries, and resulting artifacts. Secret values should be filtered or referenced, not preserved in reusable form.
+
+Human approval should remain an explicit event. A record should distinguish what an agent proposed, what the user approved, modified, or rejected, and what the system ultimately executed.
+
+Automated evaluations should be preserved as derived assertions, not promoted to truth. Each evaluation should identify its subject, criteria, evaluator, model or software version, result, and sources. User judgment should remain distinguishable from model judgment.
+
+These services may later be exposed to other harnesses. An external agent framework could use Manifold to retrieve recent context, relevant project history, confirmed decisions, or bounded context while the record core preserves exactly what evidence supported the returned bundle.
 
 ## First Goal
 
@@ -126,7 +150,7 @@ Manifold should never claim that an imported conversation is complete unless the
 
 Personal state and AI-generated interpretations should be visible, distinguishable from source records, editable, exportable, and deletable by the user. Owning data includes the right to erase it, not merely to keep it.
 
-Summaries, tags, indexes, extracted decisions, embeddings, project notes, and other interpretations should remain derived artifacts. They should never silently rewrite the original captured or imported record.
+Summaries, tags, indexes, extracted decisions, embeddings, project notes, memories, and other interpretations should remain derived artifacts. They should never silently rewrite the original captured or imported record.
 
 Work should be organized around projects, sessions, and user goals, not provider names. A backend is a worker inside the project, not the place where the work belongs.
 
