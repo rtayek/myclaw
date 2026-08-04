@@ -8,8 +8,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import myclaw.domain.ChatData;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Resolves ChatGPT web chat titles to their direct URLs by running chatgpt-web-sessions.sh.
+ * Resolves ChatGPT web chat titles and metadata to ChatData records by running chatgpt-web-sessions.sh.
  */
 public class ChatGptWebSessionResolver {
     public static final String DEFAULT_SCRIPT_PATH = "./chatgpt-web-sessions.sh";
@@ -37,6 +42,18 @@ public class ChatGptWebSessionResolver {
     }
 
     public Map<String, String> resolveSessions(String cdpUrl) {
+        return parseOutput(runScript(cdpUrl));
+    }
+
+    public List<ChatData> resolveChatData() {
+        return resolveChatData(null, "Default");
+    }
+
+    public List<ChatData> resolveChatData(String cdpUrl, String defaultProjectName) {
+        return parseChatDataList(runScript(cdpUrl), defaultProjectName);
+    }
+
+    private String runScript(String cdpUrl) {
         ProcessBuilder pb;
         if (cdpUrl != null && !cdpUrl.isBlank()) {
             pb = new ProcessBuilder("sh", scriptPath, cdpUrl);
@@ -59,15 +76,24 @@ public class ChatGptWebSessionResolver {
         } catch (Exception exception) {
             throw new IllegalStateException("Failed to execute chatgpt-web-sessions script: " + scriptPath, exception);
         }
-
-        return parseOutput(output.toString());
+        return output.toString();
     }
 
     public static Map<String, String> parseOutput(String output) {
         Map<String, String> sessions = new LinkedHashMap<>();
-        if (output == null || output.isBlank()) {
-            return sessions;
+        for (ChatData chat : parseChatDataList(output, "Default")) {
+            sessions.put(chat.title(), chat.webUrl());
         }
+        return sessions;
+    }
+
+    public static List<ChatData> parseChatDataList(String output, String defaultProject) {
+        List<ChatData> chats = new ArrayList<>();
+        if (output == null || output.isBlank()) {
+            return chats;
+        }
+
+        String fallbackProject = (defaultProject != null && !defaultProject.isBlank()) ? defaultProject : "Default";
 
         String[] lines = output.split("\r?\n");
         for (String line : lines) {
@@ -75,15 +101,45 @@ public class ChatGptWebSessionResolver {
             if (line.isEmpty() || line.startsWith("Warning:") || line.startsWith("No ChatGPT")) {
                 continue;
             }
+
             int arrowIndex = line.indexOf(" -> ");
-            if (arrowIndex > 0) {
-                String title = line.substring(0, arrowIndex).trim();
-                String url = line.substring(arrowIndex + 4).trim();
-                if (!title.isEmpty() && !url.isEmpty()) {
-                    sessions.put(title, url);
-                }
+            if (arrowIndex <= 0) {
+                continue;
             }
+
+            String leftPart = line.substring(0, arrowIndex).trim();
+            String rightPart = line.substring(arrowIndex + 4).trim();
+
+            String projectName = fallbackProject;
+            String title = leftPart;
+            String webUrl = rightPart;
+            String lastActive = "";
+
+            // Parse [ProjectName] prefix if present in title
+            if (title.startsWith("[")) {
+                int closingBracket = title.indexOf("]");
+                if (closingBracket > 1) {
+                    projectName = title.substring(1, closingBracket).trim();
+                    title = title.substring(closingBracket + 1).trim();
+                }
+            } else if (title.contains(" | ")) {
+                String[] parts = title.split("\\s*\\|\\s*", 2);
+                projectName = parts[0].trim();
+                title = parts[1].trim();
+            }
+
+            // Parse | lastActive timestamp suffix if present in webUrl
+            if (webUrl.contains(" | ")) {
+                String[] parts = webUrl.split("\\s*\\|\\s*", 2);
+                webUrl = parts[0].trim();
+                lastActive = parts[1].trim();
+            }
+
+            String chatId = ChatData.extractChatId(webUrl);
+            String id = !chatId.isBlank() ? chatId : title.replaceAll("[^a-zA-Z0-9_-]", "-");
+
+            chats.add(new ChatData(id, projectName, chatId, title, webUrl, "chatgpt", lastActive));
         }
-        return sessions;
+        return chats;
     }
 }

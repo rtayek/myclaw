@@ -179,6 +179,25 @@ public final class SqliteSessionEventStore implements SessionEventStore {
                     )
                     """);
             statement.executeUpdate("""
+                    CREATE TABLE IF NOT EXISTS projects (
+                        project_name TEXT PRIMARY KEY,
+                        created_at TEXT NOT NULL,
+                        updated_at TEXT NOT NULL
+                    )
+                    """);
+            statement.executeUpdate("""
+                    CREATE TABLE IF NOT EXISTS chats (
+                        id TEXT PRIMARY KEY,
+                        project_name TEXT NOT NULL,
+                        chat_id TEXT NOT NULL,
+                        title TEXT NOT NULL,
+                        web_url TEXT NOT NULL,
+                        provider TEXT NOT NULL,
+                        last_active TEXT NOT NULL,
+                        FOREIGN KEY (project_name) REFERENCES projects(project_name)
+                    )
+                    """);
+            statement.executeUpdate("""
                     CREATE TABLE IF NOT EXISTS session_event (
                         session_id TEXT NOT NULL,
                         sequence_number INTEGER NOT NULL,

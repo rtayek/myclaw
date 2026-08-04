@@ -36,4 +36,23 @@ final class ChatGptWebSessionResolverTest {
         assertTrue(ChatGptWebSessionResolver.parseOutput("").isEmpty());
         assertTrue(ChatGptWebSessionResolver.parseOutput("No ChatGPT web chats found.").isEmpty());
     }
+
+    @Test
+    void parseChatDataListExtractsFullMetadata() {
+        String sampleOutput = """
+                [MyClaw] Architecture Chat -> https://chatgpt.com/c/6a62806d-643c-83e8-96cd-aa4e66e5d56d | 2026-08-04T11:00:00Z
+                """;
+
+        java.util.List<myclaw.domain.ChatData> chats = ChatGptWebSessionResolver.parseChatDataList(sampleOutput, "DefaultProject");
+
+        assertEquals(1, chats.size());
+        myclaw.domain.ChatData chat = chats.get(0);
+        assertEquals("6a62806d-643c-83e8-96cd-aa4e66e5d56d", chat.id());
+        assertEquals("MyClaw", chat.projectName());
+        assertEquals("6a62806d-643c-83e8-96cd-aa4e66e5d56d", chat.chatId());
+        assertEquals("Architecture Chat", chat.title());
+        assertEquals("https://chatgpt.com/c/6a62806d-643c-83e8-96cd-aa4e66e5d56d", chat.webUrl());
+        assertEquals("chatgpt", chat.provider());
+        assertEquals("2026-08-04T11:00:00Z", chat.lastActive());
+    }
 }
