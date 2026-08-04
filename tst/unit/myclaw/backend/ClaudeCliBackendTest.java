@@ -37,6 +37,15 @@ final class ClaudeCliBackendTest {
     }
 
     @Test
+    void constructsClaudeResumeCommandWhenSessionIdIsPresent() {
+        executor.result = new CommandResult(0, "resumed response", "", Duration.ofMillis(1), false);
+
+        backend.ask(AiRequest.withSession("Continue work", "sess-123-abc"));
+
+        assertEquals(List.of("claude", "--resume", "sess-123-abc", "-p", "Continue work"), executor.request.command());
+    }
+
+    @Test
     void guidedTeachingProfileAddsTeachingInstructionToClaudePromptArgument() {
         executor.result = new CommandResult(0, "done", "", Duration.ofMillis(1), false);
 

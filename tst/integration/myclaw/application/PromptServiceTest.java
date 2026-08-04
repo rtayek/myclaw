@@ -79,6 +79,40 @@ final class PromptServiceTest {
     }
 
     @Test
+    void submitWithSessionIdPassesSessionIdInAiRequest() {
+        CapturingCommandBackend backend = new CapturingCommandBackend(
+                new CommandBackedRun(
+                        new AiResponse("OK\n", new BackendId("Fake CLI"), Duration.ofMillis(8)),
+                        new CommandResult(0, "OK\n", "", Duration.ofMillis(8), false),
+                        List.of("fake", "run")
+                )
+        );
+        PromptService service = serviceWith("fake", backend);
+
+        service.submit("fake", "Resume conversation", "sess-999");
+
+        assertTrue(backend.request.sessionId().isPresent());
+        assertEquals("sess-999", backend.request.sessionId().get());
+        assertEquals("Resume conversation", backend.request.prompt());
+    }
+
+    @Test
+    void listSessionsReturnsEmptyListWhenNoSessionsExist() {
+        CapturingCommandBackend backend = new CapturingCommandBackend(
+                new CommandBackedRun(
+                        new AiResponse("OK\n", new BackendId("Fake CLI"), Duration.ofMillis(8)),
+                        new CommandResult(0, "OK\n", "", Duration.ofMillis(8), false),
+                        List.of("fake", "run")
+                )
+        );
+        PromptService service = serviceWith("fake", backend);
+
+        List<String> sessions = service.listSessions("fake");
+
+        assertTrue(sessions.isEmpty());
+    }
+
+    @Test
     void failedSubmitWritesTranscriptBeforeRethrowing() throws Exception {
         AiBackendException failure = new AiBackendExecutionException(
                 "Fake CLI exited with status 9",

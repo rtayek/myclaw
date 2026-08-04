@@ -24,6 +24,16 @@ public final class ResultReporter {
         out.println("Wrote consolidated summary to: " + outputPath);
     }
 
+    public void reportSessions(java.util.List<String> sessions) {
+        if (sessions.isEmpty()) {
+            out.println("No active sessions found.");
+        } else {
+            for (String session : sessions) {
+                out.println(session);
+            }
+        }
+    }
+
     public void reportFailure(AiBackendException exception) {
         err.println(exception.getMessage());
         exception.commandResult()

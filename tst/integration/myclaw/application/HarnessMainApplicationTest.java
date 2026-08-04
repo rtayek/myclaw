@@ -345,6 +345,41 @@ final class HarnessMainApplicationTest {
         Files.deleteIfExists(outputPath);
     }
 
+    @Test
+    void sessionsCommandReportsActiveSessions() {
+        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+        HarnessMainApplication application = applicationWithBackends(
+                Map.of("claude", new CapturingBackend(new AiResponse("OK", new BackendId("Claude"), Duration.ofMillis(5)))),
+                stdout,
+                new ByteArrayOutputStream(),
+                "unused"
+        );
+
+        int exitCode = application.run(new String[]{"sessions"});
+
+        assertEquals(0, exitCode);
+        assertTrue(stdout.toString(StandardCharsets.UTF_8).contains("No active sessions found."));
+    }
+
+    @Test
+    void submitCommandResumesSessionWithPrompt() {
+        CapturingExecutor claudeExecutor = new CapturingExecutor(
+                new CommandResult(0, "RESUMED_OK\n", "", Duration.ofMillis(10), false));
+        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+        HarnessMainApplication application = applicationWithBackends(
+                Map.of("claude", new ClaudeCliBackend(claudeExecutor, Duration.ofSeconds(5))),
+                stdout,
+                new ByteArrayOutputStream(),
+                "unused"
+        );
+
+        int exitCode = application.run(new String[]{"submit", "--session", "sess-123-abc", "--prompt", "Continue topic"});
+
+        assertEquals(0, exitCode);
+        assertEquals("RESUMED_OK\n", stdout.toString(StandardCharsets.UTF_8));
+        assertEquals(List.of("claude", "--resume", "sess-123-abc", "-p", "Continue topic"), claudeExecutor.request.command());
+    }
+
 
 
     private static int occurrencesOf(String text, String pattern) {

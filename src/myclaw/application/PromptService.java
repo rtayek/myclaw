@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -16,7 +17,10 @@ import myclaw.backend.AiResponse;
 import myclaw.backend.CommandBackedAiBackend;
 import myclaw.backend.CommandBackedRun;
 import myclaw.backend.PromptProfile;
+import myclaw.execution.CommandRequest;
 import myclaw.execution.CommandResult;
+import myclaw.execution.CommandRunner;
+import myclaw.session.SessionEventStore;
 import myclaw.transcript.Transcript;
 import myclaw.transcript.TranscriptWriter;
 
@@ -24,10 +28,11 @@ public final class PromptService {
     private final Map<String, AiBackend> backends;
     private final Map<String, String> backendLabels;
     private final TranscriptWriter transcriptWriter;
+    private final SessionEventStore sessionStore;
     private final Clock clock;
 
     public PromptService(Map<String, AiBackend> backends, TranscriptWriter transcriptWriter, Clock clock) {
-        this(backends, backendIdsAsLabels(backends), transcriptWriter, clock);
+        this(backends, backendIdsAsLabels(backends), transcriptWriter, null, clock);
     }
 
     public PromptService(
@@ -36,12 +41,23 @@ public final class PromptService {
             TranscriptWriter transcriptWriter,
             Clock clock
     ) {
+        this(backends, backendLabels, transcriptWriter, null, clock);
+    }
+
+    public PromptService(
+            Map<String, AiBackend> backends,
+            Map<String, String> backendLabels,
+            TranscriptWriter transcriptWriter,
+            SessionEventStore sessionStore,
+            Clock clock
+    ) {
         this.backends = Map.copyOf(Objects.requireNonNull(backends, "backends"));
         this.backendLabels = Map.copyOf(Objects.requireNonNull(backendLabels, "backendLabels"));
         if (!this.backendLabels.keySet().containsAll(this.backends.keySet())) {
             throw new IllegalArgumentException("backendLabels must include every backend id");
         }
         this.transcriptWriter = Objects.requireNonNull(transcriptWriter, "transcriptWriter");
+        this.sessionStore = sessionStore;
         this.clock = Objects.requireNonNull(clock, "clock");
     }
 
@@ -56,17 +72,63 @@ public final class PromptService {
                 .toList();
     }
 
+    public List<String> listSessions(String backendName) {
+        if (!hasBackend(backendName)) {
+            throw new IllegalArgumentException("Unknown backend: " + backendName);
+        }
+
+        List<String> sessions = new ArrayList<>();
+
+        if (sessionStore != null) {
+            try {
+                sessionStore.listSessions().stream()
+                        .map(summary -> summary.sessionId().value())
+                        .forEach(sessions::add);
+            } catch (Exception ignored) {
+            }
+        }
+
+        if ("claude".equalsIgnoreCase(backendName)) {
+            try {
+                CommandResult result = new CommandRunner().run(
+                        new CommandRequest(List.of("claude", "--list-sessions"), "", Duration.ofSeconds(10))
+                );
+                if (result.exitCode() == 0 && !result.standardOutput().isBlank()) {
+                    for (String line : result.standardOutput().split("\\r?\\n")) {
+                        String trimmed = line.trim();
+                        if (!trimmed.isEmpty() && !sessions.contains(trimmed)) {
+                            sessions.add(trimmed);
+                        }
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        return List.copyOf(sessions);
+    }
+
     public PromptResult submit(String backendName, String prompt) {
-        return submit(backendName, prompt, PromptProfile.GENERAL);
+        return submit(backendName, prompt, PromptProfile.GENERAL, null);
     }
 
     public PromptResult submit(String backendName, String prompt, PromptProfile profile) {
+        return submit(backendName, prompt, profile, null);
+    }
+
+    public PromptResult submit(String backendName, String prompt, String sessionId) {
+        return submit(backendName, prompt, PromptProfile.GENERAL, sessionId);
+    }
+
+    public PromptResult submit(String backendName, String prompt, PromptProfile profile, String sessionId) {
         AiBackend backend = backends.get(backendName);
         if (backend == null) {
             throw new IllegalArgumentException("Unknown backend: " + backendName);
         }
 
-        AiRequest request = AiRequest.withProfile(prompt, profile);
+        AiRequest request = (sessionId != null && !sessionId.isBlank())
+                ? AiRequest.withSession(prompt, sessionId, profile)
+                : AiRequest.withProfile(prompt, profile);
         Instant started = clock.instant();
         String runId = TranscriptWriter.newRunId();
         try {

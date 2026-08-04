@@ -16,7 +16,7 @@ import myclaw.transcript.ResultReporter;
 import myclaw.transcript.TranscriptWriteException;
 
 public final class HarnessMainApplication {
-    private static final String USAGE = "Usage: java -jar ai-harness.jar <backend> \"prompt\" | ingest <chat-file-path> [projectName] [backend]";
+    private static final String USAGE = "Usage: java -jar ai-harness.jar <backend> \"prompt\" | ingest <chat-file-path> [projectName] [backend] | sessions [backend] | submit [--session <session-id>] --prompt \"prompt\" [backend]";
 
     private final PromptService promptService;
     private final TranscriptIngestionService ingestionService;
@@ -47,6 +47,70 @@ public final class HarnessMainApplication {
         if (args.length == 0) {
             reporter.reportUsageError(USAGE);
             return 2;
+        }
+
+        if ("sessions".equalsIgnoreCase(args[0])) {
+            String backendName = (args.length >= 2) ? args[1] : "claude";
+            if (!promptService.hasBackend(backendName)) {
+                reporter.reportUsageError("Unknown backend: " + backendName);
+                return 2;
+            }
+            try {
+                reporter.reportSessions(promptService.listSessions(backendName));
+                return 0;
+            } catch (Exception exception) {
+                reporter.reportUsageError(exception.getMessage());
+                return 1;
+            }
+        }
+
+        if ("submit".equalsIgnoreCase(args[0])) {
+            String sessionId = null;
+            String prompt = null;
+            String backendName = "claude";
+
+            for (int i = 1; i < args.length; i++) {
+                String arg = args[i];
+                if ("--session".equalsIgnoreCase(arg) || "-s".equalsIgnoreCase(arg)) {
+                    if (i + 1 < args.length) {
+                        sessionId = args[++i];
+                    }
+                } else if ("--prompt".equalsIgnoreCase(arg) || "-p".equalsIgnoreCase(arg)) {
+                    if (i + 1 < args.length) {
+                        prompt = args[++i];
+                    }
+                } else if (!arg.startsWith("-") && promptService.hasBackend(arg)) {
+                    backendName = arg;
+                } else if (prompt == null && !arg.startsWith("-")) {
+                    prompt = arg;
+                }
+            }
+
+            if (prompt == null || prompt.isBlank()) {
+                try {
+                    prompt = promptFrom("-", input);
+                } catch (PromptInputException exception) {
+                    reporter.reportUsageError("Prompt is required for submit command.");
+                    return 2;
+                }
+            }
+
+            if (!promptService.hasBackend(backendName)) {
+                reporter.reportUsageError("Unknown backend: " + backendName);
+                return 2;
+            }
+
+            try {
+                PromptResult result = promptService.submit(backendName, prompt, sessionId);
+                reporter.reportSuccess(result);
+                return 0;
+            } catch (AiBackendException exception) {
+                reporter.reportFailure(exception);
+                return 1;
+            } catch (TranscriptWriteException exception) {
+                reporter.reportTranscriptWriteFailure(exception);
+                return 1;
+            }
         }
 
         if ("ingest".equalsIgnoreCase(args[0])) {
