@@ -191,6 +191,209 @@ public class PlaywrightWebAdapter implements AutoCloseable {
         return summaries;
     }
 
+    // --- claude.ai web transcript reading (new; independent of the ChatGPT path above) ---
+
+    public static final String CLAUDE_BASE_URL = "https://claude.ai";
+
+    /**
+     * The most recent claude.ai conversation, read from the already-logged-in
+     * browser session and formatted as role-prefixed Markdown, or empty when
+     * nothing is reachable (browser not running, not logged in, no chats, or the
+     * page layout no longer matches any known selector). Never throws for the
+     * "nothing available" case: callers (the HTTP endpoint) treat empty as 204.
+     */
+    public Optional<String> latestClaudeChatMarkdown() {
+        try {
+            if (!connectViaCdpOnly()) {
+                // No logged-in session to read, and we deliberately do NOT launch
+                // a fresh browser here: "browser not running" must yield 204.
+                return Optional.empty();
+            }
+            Optional<ChatWebSummary> latest = latestClaudeChat();
+            if (latest.isEmpty()) {
+                return Optional.empty();
+            }
+            Page page = findOrOpenPage(latest.get().url());
+            List<ClaudeTurn> turns = readClaudeTranscript(page);
+            if (turns.isEmpty()) {
+                return Optional.empty();
+            }
+            String markdown = ClaudeTranscriptFormatter.toRolePrefixedMarkdown(turns);
+            return markdown.isBlank() ? Optional.empty() : Optional.of(markdown);
+        } catch (Exception unavailable) {
+            // Treat any failure to reach/read as "nothing available" so the
+            // endpoint returns 204 rather than surfacing a stack trace.
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Attaches to an already-running Chrome over CDP only; unlike {@link #connect()}
+     * it never falls back to launching a browser. Returns false (and leaves the
+     * adapter unconnected) when no CDP endpoint is reachable.
+     */
+    private synchronized boolean connectViaCdpOnly() {
+        if (playwright == null) {
+            playwright = Playwright.create();
+        }
+        if (browser != null && browser.isConnected() && connectedViaCdp) {
+            return true;
+        }
+        try {
+            browser = playwright.chromium().connectOverCDP(cdpUrl);
+            connectedViaCdp = true;
+            return true;
+        } catch (Exception cdpUnreachable) {
+            connectedViaCdp = false;
+            return false;
+        }
+    }
+
+    /** The most recently updated claude.ai conversation from the sidebar, or empty. */
+    public Optional<ChatWebSummary> latestClaudeChat() {
+        List<ChatWebSummary> chats = listClaudeChats();
+        return chats.isEmpty() ? Optional.empty() : Optional.of(chats.get(0));
+    }
+
+    /**
+     * Lists claude.ai conversations from the sidebar, most-recent first.
+     *
+     * claude.ai conversation links are {@code /chat/<uuid>}; the sidebar renders
+     * them newest-first, so element order is recency order. Titles-and-urls only,
+     * mirroring {@link #listChatGPTChats()} — message bodies are read separately
+     * by {@link #readClaudeTranscript(Page)}.
+     */
+    public List<ChatWebSummary> listClaudeChats() {
+        Page page = findOrOpenPage(CLAUDE_BASE_URL);
+        return listClaudeChats(page);
+    }
+
+    public List<ChatWebSummary> listClaudeChats(Page page) {
+        Objects.requireNonNull(page, "page");
+        try {
+            page.waitForSelector("a[href*='/chat/']",
+                    new Page.WaitForSelectorOptions().setTimeout(5000));
+        } catch (Exception ignored) {
+            // Sidebar may be slow, or absent when logged out.
+        }
+
+        List<ChatWebSummary> summaries = new ArrayList<>();
+        java.util.Set<String> seenUrls = new java.util.LinkedHashSet<>();
+        Locator chatLinks = page.locator("a[href*='/chat/']");
+        int count = chatLinks.count();
+        for (int i = 0; i < count; i++) {
+            Locator link = chatLinks.nth(i);
+            String href = link.getAttribute("href");
+            if (href == null || href.isBlank()) {
+                continue;
+            }
+            String fullUrl = href.startsWith("/") ? CLAUDE_BASE_URL + href : href;
+            String title = firstNonBlank(
+                    safeInnerText(link), link.getAttribute("title"), link.getAttribute("aria-label"));
+            if (title == null || title.isBlank()) {
+                title = "Untitled Chat";
+            }
+            if (seenUrls.add(fullUrl)) {
+                summaries.add(new ChatWebSummary(title.strip(), fullUrl));
+            }
+        }
+        return summaries;
+    }
+
+    /**
+     * Reads the full transcript of an open claude.ai conversation page, turn by
+     * turn, preserving user/assistant roles.
+     *
+     * claude.ai's DOM is undocumented and changes, so this tries several
+     * selectors in order and falls back, the same defensive pattern as
+     * {@link #submitToPage(Page, String)}. The role of each turn is inferred
+     * from stable-looking attributes ({@code data-testid}) first, then from the
+     * known {@code font-user-message} / {@code font-claude-message} class markers.
+     *
+     * NOTE: these selectors are best-effort and MUST be verified against a live
+     * logged-in page; adjust the candidate lists below if claude.ai has changed.
+     */
+    public List<ClaudeTurn> readClaudeTranscript(Page page) {
+        Objects.requireNonNull(page, "page");
+
+        // Candidate selectors that each match BOTH roles' turn containers, in
+        // DOM (chronological) order. First one that finds anything wins.
+        String[] turnSelectorCandidates = {
+                "div[data-testid='user-message'], div[data-testid='assistant-message']",
+                "[data-testid='user-message'], .font-claude-message",
+                "div.font-user-message, div.font-claude-message",
+        };
+
+        try {
+            page.waitForSelector(String.join(", ", turnSelectorCandidates),
+                    new Page.WaitForSelectorOptions().setTimeout(5000));
+        } catch (Exception ignored) {
+            // No messages found in time (e.g. not logged in) -> empty transcript.
+        }
+
+        for (String selector : turnSelectorCandidates) {
+            Locator turns = page.locator(selector);
+            int count = turns.count();
+            if (count == 0) {
+                continue;
+            }
+            List<ClaudeTurn> result = new ArrayList<>();
+            for (int i = 0; i < count; i++) {
+                Locator turn = turns.nth(i);
+                String text = safeInnerText(turn);
+                if (text == null || text.isBlank()) {
+                    continue;
+                }
+                result.add(new ClaudeTurn(inferRole(turn), text.strip()));
+            }
+            if (!result.isEmpty()) {
+                return result;
+            }
+        }
+        return List.of();
+    }
+
+    private static String inferRole(Locator turn) {
+        String testId = turn.getAttribute("data-testid");
+        if (testId != null) {
+            String lowered = testId.toLowerCase(java.util.Locale.ROOT);
+            if (lowered.contains("user")) {
+                return "user";
+            }
+            if (lowered.contains("assistant") || lowered.contains("claude")) {
+                return "assistant";
+            }
+        }
+        String classAttr = turn.getAttribute("class");
+        if (classAttr != null) {
+            String lowered = classAttr.toLowerCase(java.util.Locale.ROOT);
+            if (lowered.contains("user")) {
+                return "user";
+            }
+            if (lowered.contains("claude") || lowered.contains("assistant")) {
+                return "assistant";
+            }
+        }
+        return "unknown";
+    }
+
+    private static String safeInnerText(Locator locator) {
+        try {
+            return locator.innerText();
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private static String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
+    }
+
     public synchronized boolean isConnected() {
         return browser != null && browser.isConnected();
     }

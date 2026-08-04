@@ -22,7 +22,7 @@ import java.util.Objects;
 import myclaw.web.PlaywrightWebAdapter;
 
 public final class HarnessMainApplication {
-    private static final String USAGE = "Usage: java -jar ai-harness.jar <backend> \"prompt\" | ingest <chat-file-path> [projectName] [backend] | sessions [backend] | submit [--session <session-id>] --prompt \"prompt\" [backend] | web-sessions [--verbose|--json] [cdpUrl] | web-submit [--url <chatUrl> | --title <chatTitle>] --prompt \"prompt\" [projectName] [cdpUrl]";
+    private static final String USAGE = "Usage: java -jar ai-harness.jar <backend> \"prompt\" | ingest <chat-file-path> [projectName] [backend] | sessions [backend] | submit [--session <session-id>] --prompt \"prompt\" [backend] | web-sessions [--verbose|--json] [cdpUrl] | web-submit [--url <chatUrl> | --title <chatTitle>] --prompt \"prompt\" [projectName] [cdpUrl] | claude-web-server [--port <port>] [cdpUrl]";
 
     private final PromptService promptService;
     private final TranscriptIngestionService ingestionService;
@@ -103,6 +103,50 @@ public final class HarnessMainApplication {
                 return 0;
             } catch (Exception exception) {
                 reporter.reportUsageError("Could not list ChatGPT web chats: " + exception.getMessage());
+                return 1;
+            }
+        }
+
+        if ("claude-web-server".equalsIgnoreCase(args[0])) {
+            int port = 8722;
+            String cdpUrl = PlaywrightWebAdapter.DEFAULT_CDP_URL;
+            for (int i = 1; i < args.length; i++) {
+                String arg = args[i];
+                if ("--port".equalsIgnoreCase(arg) || "-p".equalsIgnoreCase(arg)) {
+                    if (i + 1 < args.length) {
+                        try {
+                            port = Integer.parseInt(args[++i]);
+                        } catch (NumberFormatException e) {
+                            reporter.reportUsageError("Port must be a number, got: " + args[i]);
+                            return 2;
+                        }
+                    }
+                } else if (arg.startsWith("http://") || arg.startsWith("https://")) {
+                    cdpUrl = arg;
+                }
+            }
+
+            PlaywrightWebAdapter adapter = new PlaywrightWebAdapter(cdpUrl);
+            try {
+                myclaw.web.ClaudeWebLatestServer server =
+                        new myclaw.web.ClaudeWebLatestServer(port, adapter::latestClaudeChatMarkdown);
+                Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                    server.close();
+                    adapter.close();
+                }));
+                server.start();
+                System.out.println("Serving latest claude.ai chat at "
+                        + "http://127.0.0.1:" + server.port() + myclaw.web.ClaudeWebLatestServer.PATH);
+                System.out.println("Reading browser session over CDP at " + cdpUrl + ". Ctrl-C to stop.");
+                Thread.currentThread().join(); // run until interrupted / shut down
+                return 0;
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+                adapter.close();
+                return 0;
+            } catch (Exception exception) {
+                adapter.close();
+                reporter.reportUsageError("Could not start claude web server: " + exception.getMessage());
                 return 1;
             }
         }
