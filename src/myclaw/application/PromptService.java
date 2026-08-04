@@ -88,10 +88,17 @@ public final class PromptService {
             }
         }
 
-        if ("claude".equalsIgnoreCase(backendName)) {
+        String binaryName = switch (backendName.toLowerCase()) {
+            case "claude" -> "claude";
+            case "codex" -> "codex";
+            case "agy" -> "agy";
+            default -> null;
+        };
+
+        if (binaryName != null) {
             try {
                 CommandResult result = new CommandRunner().run(
-                        new CommandRequest(List.of("claude", "--list-sessions"), "", Duration.ofSeconds(10))
+                        new CommandRequest(List.of(binaryName, "--list-sessions"), "", Duration.ofSeconds(10))
                 );
                 if (result.exitCode() == 0 && !result.standardOutput().isBlank()) {
                     for (String line : result.standardOutput().split("\\r?\\n")) {
