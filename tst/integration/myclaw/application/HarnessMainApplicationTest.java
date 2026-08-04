@@ -298,6 +298,30 @@ final class HarnessMainApplicationTest {
         assertTrue(transcript.contains("ollama\nrun\nglm4:9b"));
     }
 
+    @Test
+    void ingestCommandProcessesChatFileAndWritesConsolidatedSummary() throws Exception {
+        Path inputPath = tempDir.resolve("existing-chat.md");
+        Files.writeString(inputPath, "# Existing Chat\nUser: Refactor module A");
+
+        CapturingBackend backend = new CapturingBackend(new AiResponse("# Summary\nModule A refactored", new BackendId("Claude"), Duration.ofMillis(5)));
+        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+        HarnessMainApplication application = applicationWithBackends(
+                Map.of("claude", backend),
+                stdout,
+                new ByteArrayOutputStream(),
+                "unused"
+        );
+
+        int exitCode = application.run(new String[]{"ingest", inputPath.toString()});
+
+        assertEquals(0, exitCode);
+        Path outputPath = tempDir.resolve("existing-chat_CONSOLIDATED.md");
+        assertTrue(Files.exists(outputPath));
+        assertEquals("# Summary\nModule A refactored", Files.readString(outputPath));
+        assertTrue(stdout.toString(StandardCharsets.UTF_8).contains("Wrote consolidated summary to:"));
+    }
+
+
 
     private static int occurrencesOf(String text, String pattern) {
         int count = 0;

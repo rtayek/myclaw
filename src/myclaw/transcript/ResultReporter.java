@@ -20,6 +20,10 @@ public final class ResultReporter {
         out.print(result.response());
     }
 
+    public void reportIngestSuccess(java.nio.file.Path outputPath) {
+        out.println("Wrote consolidated summary to: " + outputPath);
+    }
+
     public void reportFailure(AiBackendException exception) {
         err.println(exception.getMessage());
         exception.commandResult()

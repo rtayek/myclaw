@@ -8,10 +8,18 @@ import myclaw.backend.AiBackendException;
 import myclaw.transcript.ResultReporter;
 import myclaw.transcript.TranscriptWriteException;
 
+import java.nio.file.Path;
+import java.util.Objects;
+
+import myclaw.backend.AiBackendException;
+import myclaw.transcript.ResultReporter;
+import myclaw.transcript.TranscriptWriteException;
+
 public final class HarnessMainApplication {
-    private static final String USAGE = "Usage: java -jar ai-harness.jar <backend> \"prompt\"";
+    private static final String USAGE = "Usage: java -jar ai-harness.jar <backend> \"prompt\" | ingest <chat-file-path> [backend]";
 
     private final PromptService promptService;
+    private final TranscriptIngestionService ingestionService;
     private final ResultReporter reporter;
     private final InputStream input;
 
@@ -20,12 +28,54 @@ public final class HarnessMainApplication {
             ResultReporter reporter,
             InputStream input
     ) {
-        this.promptService = promptService;
-        this.reporter = reporter;
-        this.input = input;
+        this(promptService, new TranscriptIngestionService(promptService), reporter, input);
+    }
+
+    public HarnessMainApplication(
+            PromptService promptService,
+            TranscriptIngestionService ingestionService,
+            ResultReporter reporter,
+            InputStream input
+    ) {
+        this.promptService = Objects.requireNonNull(promptService, "promptService");
+        this.ingestionService = Objects.requireNonNull(ingestionService, "ingestionService");
+        this.reporter = Objects.requireNonNull(reporter, "reporter");
+        this.input = Objects.requireNonNull(input, "input");
     }
 
     public int run(String[] args) {
+        if (args.length == 0) {
+            reporter.reportUsageError(USAGE);
+            return 2;
+        }
+
+        if ("ingest".equalsIgnoreCase(args[0])) {
+            if (args.length < 2) {
+                reporter.reportUsageError(USAGE);
+                return 2;
+            }
+            Path inputPath = Path.of(args[1]);
+            String backendName = args.length >= 3 ? args[2] : "claude";
+            if (!promptService.hasBackend(backendName)) {
+                reporter.reportUsageError("Unknown backend: " + backendName);
+                return 2;
+            }
+            try {
+                Path outputPath = ingestionService.ingest(inputPath, backendName);
+                reporter.reportIngestSuccess(outputPath);
+                return 0;
+            } catch (AiBackendException exception) {
+                reporter.reportFailure(exception);
+                return 1;
+            } catch (TranscriptWriteException exception) {
+                reporter.reportTranscriptWriteFailure(exception);
+                return 1;
+            } catch (TranscriptIngestionException | IllegalArgumentException exception) {
+                reporter.reportUsageError(exception.getMessage());
+                return 1;
+            }
+        }
+
         if (args.length != 2) {
             reporter.reportUsageError(USAGE);
             return 2;
