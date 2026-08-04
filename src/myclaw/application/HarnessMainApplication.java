@@ -128,6 +128,11 @@ public final class HarnessMainApplication {
 
             PlaywrightWebAdapter adapter = new PlaywrightWebAdapter(cdpUrl);
             try {
+                // Get a CDP-reachable Chrome up once, at startup, so the manual
+                // start-chrome-cdp-claude.sh step is not required. If one is
+                // already listening this is a no-op (no second window opens).
+                new myclaw.web.ChromeCdpLauncher().ensureChromeRunning(cdpUrl, System.out);
+
                 myclaw.web.ClaudeWebLatestServer server =
                         new myclaw.web.ClaudeWebLatestServer(port, adapter::latestClaudeChatMarkdown);
                 Runtime.getRuntime().addShutdownHook(new Thread(() -> {
