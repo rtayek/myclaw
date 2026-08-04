@@ -380,6 +380,22 @@ final class HarnessMainApplicationTest {
         assertEquals(List.of("claude", "--resume", "sess-123-abc", "-p", "Continue topic"), claudeExecutor.request.command());
     }
 
+    @Test
+    void webSubmitRequiresPromptWhenInputIsEmpty() {
+        ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+        HarnessMainApplication application = applicationWithBackends(
+                Map.of(),
+                new ByteArrayOutputStream(),
+                stderr,
+                ""
+        );
+
+        int exitCode = application.run(new String[]{"web-submit"});
+
+        assertEquals(2, exitCode);
+        assertTrue(stderr.toString(StandardCharsets.UTF_8).contains("Prompt is required for web-submit command."));
+    }
+
 
 
     private static int occurrencesOf(String text, String pattern) {

@@ -63,6 +63,11 @@ printf '%s\n' 'Say exactly: OK' | ./gradlew run --args='claude -'
    ```sh
    sh chatgpt-web-sessions.sh
    ```
+4. Submit a prompt to a target web chat:
+   ```sh
+   sh chatgpt-web-submit.sh --url "https://chatgpt.com/c/<chat-id>" --prompt "Your prompt" --project "MyClaw"
+   ```
+   *(Or by title: `sh chatgpt-web-submit.sh --title "MyClaw Architecture Chat" --prompt "Your prompt" --project "MyClaw"`)*
 
 ## Socket Transport
 

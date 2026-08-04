@@ -8,6 +8,7 @@ import myclaw.backend.AiBackendException;
 import myclaw.transcript.ResultReporter;
 import myclaw.transcript.TranscriptWriteException;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
@@ -18,7 +19,7 @@ import myclaw.transcript.TranscriptWriteException;
 import myclaw.web.PlaywrightWebAdapter;
 
 public final class HarnessMainApplication {
-    private static final String USAGE = "Usage: java -jar ai-harness.jar <backend> \"prompt\" | ingest <chat-file-path> [projectName] [backend] | sessions [backend] | submit [--session <session-id>] --prompt \"prompt\" [backend] | web-sessions [cdpUrl]";
+    private static final String USAGE = "Usage: java -jar ai-harness.jar <backend> \"prompt\" | ingest <chat-file-path> [projectName] [backend] | sessions [backend] | submit [--session <session-id>] --prompt \"prompt\" [backend] | web-sessions [cdpUrl] | web-submit [--url <chatUrl> | --title <chatTitle>] --prompt \"prompt\" [projectName] [cdpUrl]";
 
     private final PromptService promptService;
     private final TranscriptIngestionService ingestionService;
@@ -69,6 +70,71 @@ public final class HarnessMainApplication {
                 return 0;
             } catch (Exception exception) {
                 reporter.reportUsageError("Could not list ChatGPT web chats: " + exception.getMessage());
+                return 1;
+            }
+        }
+
+        if ("web-submit".equalsIgnoreCase(args[0]) || "chatgpt-web-submit".equalsIgnoreCase(args[0])) {
+            String chatUrl = null;
+            String chatTitle = null;
+            String prompt = null;
+            String projectName = null;
+            String cdpUrl = PlaywrightWebAdapter.DEFAULT_CDP_URL;
+
+            for (int i = 1; i < args.length; i++) {
+                String arg = args[i];
+                if ("--url".equalsIgnoreCase(arg) || "-u".equalsIgnoreCase(arg)) {
+                    if (i + 1 < args.length) chatUrl = args[++i];
+                } else if ("--title".equalsIgnoreCase(arg) || "-t".equalsIgnoreCase(arg)) {
+                    if (i + 1 < args.length) chatTitle = args[++i];
+                } else if ("--prompt".equalsIgnoreCase(arg) || "-p".equalsIgnoreCase(arg)) {
+                    if (i + 1 < args.length) prompt = args[++i];
+                } else if ("--project".equalsIgnoreCase(arg) || "-pr".equalsIgnoreCase(arg)) {
+                    if (i + 1 < args.length) projectName = args[++i];
+                } else if ("--cdp".equalsIgnoreCase(arg)) {
+                    if (i + 1 < args.length) cdpUrl = args[++i];
+                } else if (arg.startsWith("http://127.0.0.1") || arg.startsWith("http://localhost")) {
+                    cdpUrl = arg;
+                } else if (chatUrl == null && (arg.contains("/c/") || arg.startsWith("http"))) {
+                    chatUrl = arg;
+                } else if (prompt == null && !arg.startsWith("-")) {
+                    prompt = arg;
+                }
+            }
+
+            if (prompt == null || prompt.isBlank()) {
+                try {
+                    prompt = promptFrom("-", input);
+                } catch (PromptInputException exception) {
+                    reporter.reportUsageError("Prompt is required for web-submit command.");
+                    return 2;
+                }
+            }
+
+            try (PlaywrightWebAdapter adapter = new PlaywrightWebAdapter(cdpUrl)) {
+                String responseText;
+                if (chatUrl != null && !chatUrl.isBlank()) {
+                    responseText = adapter.submitPrompt(chatUrl, prompt);
+                } else if (chatTitle != null && !chatTitle.isBlank()) {
+                    responseText = adapter.submitToTitle(chatTitle, prompt);
+                } else {
+                    responseText = adapter.submitPrompt("https://chatgpt.com", prompt);
+                }
+
+                System.out.println(responseText);
+
+                if (projectName != null && !projectName.isBlank()) {
+                    Path outputPath = Path.of(projectName + "-CONSOLIDATED.md");
+                    try {
+                        Files.writeString(outputPath, responseText, StandardCharsets.UTF_8);
+                        reporter.reportIngestSuccess(outputPath);
+                    } catch (IOException e) {
+                        reporter.reportUsageError("Could not write consolidated output to: " + outputPath);
+                    }
+                }
+                return 0;
+            } catch (Exception exception) {
+                reporter.reportUsageError("Could not submit web prompt: " + exception.getMessage());
                 return 1;
             }
         }
