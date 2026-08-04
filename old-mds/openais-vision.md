@@ -32,7 +32,8 @@ Its distinction should be the combination of:
 * explicit, understandable control over context disclosure;
 * honest provenance and preservation-fidelity claims;
 * personal evaluation based on the user’s actual work rather than public benchmark rankings;
-* a reusable record core that can serve Manifold and other AI clients.
+* a reusable record core that can serve Manifold and other AI clients;
+* bounded, inspectable customization that can turn repeated natural-language instructions into reusable local behavior.
 
 Most harnesses will optimize execution. Manifold should optimize continuity: what happened, what context was used, what was derived, what changed, what the user preferred, and how the work can be carried elsewhere.
 
@@ -56,6 +57,7 @@ Manifold should provide:
 * concise handoffs for continuing work with another AI;
 * local reusable skills that can add selected instructions and procedures to a request;
 * curated shared, project, and tool-specific memory stored in readable standard files;
+* optional prompt-authored extensions that implement narrow application-owned contracts and can be inspected, tested, approved, stored, and executed locally;
 * scheduled prompts and summaries when explicitly configured;
 * supervised agent loops whose prompts, tool calls, changes, results, and continuation decisions remain visible;
 * records of proposed actions, effective identities, approvals, executions, failures, and resulting artifacts without retaining reusable secrets;
@@ -93,10 +95,11 @@ That core should own:
 * proposed actions, approvals, executions, and results;
 * identities and authorization references needed to explain an action, without storing reusable credentials;
 * skill identities, versions, digests, sources, and dependencies when skills affect an invocation;
+* generated-extension source, contract identity, schema fingerprint, tests, approval state, version, and execution history;
 * relationships among original records, derived artifacts, evaluations, and exports;
 * provider-independent storage and verification.
 
-Original records should remain authoritative. Summaries, tags, indexes, embeddings, handoffs, extracted decisions, memories, evaluations, and other interpretations should remain derived projections linked to their exact sources.
+Original records should remain authoritative. Summaries, tags, indexes, embeddings, handoffs, extracted decisions, memories, evaluations, generated extensions, and other interpretations should remain derived projections linked to their exact sources.
 
 Hashes can establish byte identity, detect accidental change, support deduplication, and link derived records to exact source artifacts. They cannot prove that a source was complete, accurate, or trustworthy. Content integrity and capture provenance must therefore remain distinct concepts.
 
@@ -124,6 +127,24 @@ Automated evaluations should be preserved as derived assertions, not promoted to
 
 These services may later be exposed to other harnesses. An external agent framework could use Manifold to retrieve recent context, relevant project history, confirmed decisions, or bounded context while the record core preserves exactly what evidence supported the returned bundle.
 
+## Bounded Extensions
+
+Repeated instructions may sometimes be better represented as reusable local behavior than as prompt text interpreted again on every invocation.
+
+Manifold may therefore support prompt-authored extensions for narrow operations such as filtering sessions, classifying records, ranking candidate context, validating imports, formatting reports, selecting notifications, or applying handoff inclusion rules.
+
+The application should define each extension point as a small, stable, application-owned contract. In Java, interfaces should express behavior, records should represent immutable structured data, enums should represent finite choices, and sealed hierarchies should represent closed alternatives. Broad service facades, persistence entities, transport objects, framework types, arbitrary maps, and unrestricted host access should not be exposed merely because reflection makes that technically convenient.
+
+Extension contracts should carry clear domain vocabulary, explicit limits, and independent tests. Each incompatible contract version should have a distinct identity or schema fingerprint so an old persisted extension cannot silently execute against a changed capability surface.
+
+Authoring and execution should remain separate phases. During authoring, a model may receive the contract, prompt, selected examples, limits, and tests and produce a script or other executable artifact. The result should then be inspectable, testable, approvable, versioned, and revocable. During ordinary execution, the approved extension should run locally through the same bounded contract without requiring another model call.
+
+A generated extension is not an authority merely because it compiles or passes representative tests. It remains a derived artifact whose prompt, schema, examples, generating model, source digest, tests, approval, and later executions should be preserved. Execution should be sandboxed or capability-limited, resource-bounded, observable, and subject to rollback or deactivation.
+
+This mechanism belongs above the record core, within derived services and customization. The record core itself should remain deterministic and independent of generated guest-language behavior.
+
+The first experiment should use a deliberately small contract, such as a rule over a read-only session summary, and compare the result with a plain Java implementation and a Markdown skill before any broader adoption. Graal Script Agent is one possible implementation technology, not a foundational dependency or product requirement.
+
 ## First Goal
 
 The first useful version should be practical for daily use.
@@ -132,9 +153,9 @@ A user should be able to choose an AI, enter a prompt by typing or speaking, rea
 
 The system should store the complete observable conversation through a common local model. Imported material should remain distinguishable from native capture, with the original artifact preserved unchanged whenever possible.
 
-The first version does not require automatic routing, fine-tuning, multi-agent orchestration, or a separately deployed record service. It should establish clean record-core boundaries and preserve enough information to support later evaluation of model quality, latency, cost, privacy, and reliability on the user’s actual work.
+The first version does not require automatic routing, fine-tuning, multi-agent orchestration, prompt-authored extensions, or a separately deployed record service. It should establish clean record-core boundaries and preserve enough information to support later evaluation of model quality, latency, cost, privacy, and reliability on the user’s actual work.
 
-Skills, curated memory, scheduling, and agent loops are later capabilities built on the same session and event record. Their first implementations should be small and inspectable: manually selected local skills, readable Markdown memory, explicitly configured schedules, and a coding loop in which an external coding tool edits files, tests are run, failures are returned to the tool, and the user reviews the resulting diff.
+Skills, curated memory, scheduling, agent loops, and bounded extensions are later capabilities built on the same session and event record. Their first implementations should be small and inspectable: manually selected local skills, readable Markdown memory, explicitly configured schedules, a coding loop in which an external coding tool edits files and the user reviews the resulting diff, and a read-only generated rule over a narrow application-owned contract.
 
 ## Guiding Principles
 
@@ -150,13 +171,15 @@ Manifold should never claim that an imported conversation is complete unless the
 
 Personal state and AI-generated interpretations should be visible, distinguishable from source records, editable, exportable, and deletable by the user. Owning data includes the right to erase it, not merely to keep it.
 
-Summaries, tags, indexes, extracted decisions, embeddings, project notes, memories, and other interpretations should remain derived artifacts. They should never silently rewrite the original captured or imported record.
+Summaries, tags, indexes, extracted decisions, embeddings, project notes, memories, generated extensions, and other interpretations should remain derived artifacts. They should never silently rewrite the original captured or imported record.
 
 Work should be organized around projects, sessions, and user goals, not provider names. A backend is a worker inside the project, not the place where the work belongs.
 
 The user’s context is part of the user’s durable intellectual work. Manifold should not silently expose, duplicate, or bind that context to a provider. Context disclosure should be deliberate, inspectable, and limited to what the task requires.
 
 Privacy and capability controls should be explicit and enforced by the system, not merely suggested by the interface.
+
+AI-authored behavior should operate only through explicit application-owned capabilities. Prompt convenience must not silently become unrestricted access to the application, filesystem, network, credentials, or host runtime.
 
 Model choice should follow the user’s task, constraints, and evidence from real use. Manifold should not privilege a provider, model family, or deployment method merely because it is fashionable, expensive, or currently at the top of a public benchmark.
 
@@ -173,3 +196,5 @@ Manifold succeeds first when it becomes a genuinely useful accessible AI cockpit
 It succeeds in the longer term when it becomes the user-owned workspace and continuity layer through which people can use, compare, and change AI systems without surrendering ownership of their work.
 
 The record core succeeds when Manifold depends on it cleanly and other clients could use it without inheriting Manifold’s user interface or provider-specific assumptions.
+
+Bounded extensions succeed when users can convert repeated instructions into understandable, testable, reusable local behavior without granting the generated code broader authority than the task requires.
