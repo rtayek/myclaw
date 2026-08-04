@@ -2,10 +2,10 @@ package myclaw.web;
 
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
+import com.microsoft.playwright.BrowserType;
+import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
-
-import com.microsoft.playwright.Locator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +38,11 @@ public class PlaywrightWebAdapter implements AutoCloseable {
             playwright = Playwright.create();
         }
         if (browser == null || !browser.isConnected()) {
-            browser = playwright.chromium().connectOverCDP(cdpUrl);
+            try {
+                browser = playwright.chromium().connectOverCDP(cdpUrl);
+            } catch (Exception cdpException) {
+                browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false));
+            }
         }
     }
 
