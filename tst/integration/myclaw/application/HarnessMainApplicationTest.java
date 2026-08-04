@@ -321,6 +321,30 @@ final class HarnessMainApplicationTest {
         assertTrue(stdout.toString(StandardCharsets.UTF_8).contains("Wrote consolidated summary to:"));
     }
 
+    @Test
+    void ingestCommandWithExplicitProjectNameWritesToProjectConsolidatedFile() throws Exception {
+        Path inputPath = tempDir.resolve("existing-chat.md");
+        Files.writeString(inputPath, "# Existing Chat\nUser: Refactor module B");
+
+        CapturingBackend backend = new CapturingBackend(new AiResponse("# Summary\nModule B refactored", new BackendId("Claude"), Duration.ofMillis(5)));
+        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+        HarnessMainApplication application = applicationWithBackends(
+                Map.of("claude", backend),
+                stdout,
+                new ByteArrayOutputStream(),
+                "unused"
+        );
+
+        int exitCode = application.run(new String[]{"ingest", inputPath.toString(), "MyClaw"});
+
+        assertEquals(0, exitCode);
+        Path outputPath = Path.of("MyClaw_CONSOLIDATED.md");
+        assertTrue(Files.exists(outputPath));
+        assertEquals("# Summary\nModule B refactored", Files.readString(outputPath));
+        assertTrue(stdout.toString(StandardCharsets.UTF_8).contains("Wrote consolidated summary to: MyClaw_CONSOLIDATED.md"));
+        Files.deleteIfExists(outputPath);
+    }
+
 
 
     private static int occurrencesOf(String text, String pattern) {

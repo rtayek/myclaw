@@ -90,10 +90,35 @@ final class TranscriptIngestionServiceTest {
     }
 
     @Test
+    void ingestWithExplicitProjectNameWritesToProjectConsolidatedFile() throws Exception {
+        Path inputPath = tempDir.resolve("existing-chat.md");
+        Files.writeString(inputPath, "# Chat\nUser: Project task");
+
+        CapturingCommandBackend backend = new CapturingCommandBackend(
+                new CommandBackedRun(
+                        new AiResponse("Summary for MyClaw", new BackendId("Claude CLI"), Duration.ofMillis(10)),
+                        new CommandResult(0, "OK", "", Duration.ofMillis(10), false),
+                        List.of("claude", "-p", "prompt")
+                )
+        );
+        PromptService promptService = serviceWith("claude", backend);
+        TranscriptIngestionService ingestionService = new TranscriptIngestionService(promptService);
+
+        Path outputPath = ingestionService.ingest(inputPath, "claude", "MyClaw");
+
+        assertEquals(Path.of("MyClaw_CONSOLIDATED.md"), outputPath);
+        assertTrue(Files.exists(outputPath));
+        assertEquals("Summary for MyClaw", Files.readString(outputPath));
+        // clean up generated file at root
+        Files.deleteIfExists(outputPath);
+    }
+
+    @Test
     void computeOutputPathDerivesConsolidatedFilename() {
         assertEquals(Path.of("/foo/bar/project_CONSOLIDATED.md"), TranscriptIngestionService.computeOutputPath(Path.of("/foo/bar/project.md")));
         assertEquals(Path.of("chat_CONSOLIDATED.md"), TranscriptIngestionService.computeOutputPath(Path.of("chat.json")));
         assertEquals(Path.of("test_CONSOLIDATED.md"), TranscriptIngestionService.computeOutputPath(Path.of("test")));
+        assertEquals(Path.of("MyClaw_CONSOLIDATED.md"), TranscriptIngestionService.computeOutputPath(Path.of("existing-chat.md"), "MyClaw"));
     }
 
     @Test

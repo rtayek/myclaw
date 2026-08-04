@@ -16,7 +16,7 @@ import myclaw.transcript.ResultReporter;
 import myclaw.transcript.TranscriptWriteException;
 
 public final class HarnessMainApplication {
-    private static final String USAGE = "Usage: java -jar ai-harness.jar <backend> \"prompt\" | ingest <chat-file-path> [backend]";
+    private static final String USAGE = "Usage: java -jar ai-harness.jar <backend> \"prompt\" | ingest <chat-file-path> [projectName] [backend]";
 
     private final PromptService promptService;
     private final TranscriptIngestionService ingestionService;
@@ -55,13 +55,26 @@ public final class HarnessMainApplication {
                 return 2;
             }
             Path inputPath = Path.of(args[1]);
-            String backendName = args.length >= 3 ? args[2] : "claude";
+            String projectName = null;
+            String backendName = "claude";
+
+            if (args.length == 3) {
+                if (promptService.hasBackend(args[2])) {
+                    backendName = args[2];
+                } else {
+                    projectName = args[2];
+                }
+            } else if (args.length >= 4) {
+                projectName = args[2];
+                backendName = args[3];
+            }
+
             if (!promptService.hasBackend(backendName)) {
                 reporter.reportUsageError("Unknown backend: " + backendName);
                 return 2;
             }
             try {
-                Path outputPath = ingestionService.ingest(inputPath, backendName);
+                Path outputPath = ingestionService.ingest(inputPath, backendName, projectName);
                 reporter.reportIngestSuccess(outputPath);
                 return 0;
             } catch (AiBackendException exception) {

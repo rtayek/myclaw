@@ -20,10 +20,14 @@ public final class TranscriptIngestionService {
     }
 
     public Path ingest(Path inputFilePath) {
-        return ingest(inputFilePath, "claude");
+        return ingest(inputFilePath, "claude", null);
     }
 
     public Path ingest(Path inputFilePath, String backendName) {
+        return ingest(inputFilePath, backendName, null);
+    }
+
+    public Path ingest(Path inputFilePath, String backendName, String projectName) {
         Objects.requireNonNull(inputFilePath, "inputFilePath");
         Objects.requireNonNull(backendName, "backendName");
 
@@ -43,7 +47,7 @@ public final class TranscriptIngestionService {
 
         PromptResult result = promptService.submit(backendName, prompt);
 
-        Path outputPath = computeOutputPath(inputFilePath);
+        Path outputPath = computeOutputPath(inputFilePath, projectName);
         try {
             Path parent = outputPath.getParent();
             if (parent != null) {
@@ -58,7 +62,14 @@ public final class TranscriptIngestionService {
     }
 
     public static Path computeOutputPath(Path inputFilePath) {
+        return computeOutputPath(inputFilePath, null);
+    }
+
+    public static Path computeOutputPath(Path inputFilePath, String projectName) {
         Objects.requireNonNull(inputFilePath, "inputFilePath");
+        if (projectName != null && !projectName.isBlank()) {
+            return Path.of(projectName + "_CONSOLIDATED.md");
+        }
         Path fileNamePath = inputFilePath.getFileName();
         String fileName = fileNamePath == null ? "PROJECT" : fileNamePath.toString();
         int lastDot = fileName.lastIndexOf('.');
