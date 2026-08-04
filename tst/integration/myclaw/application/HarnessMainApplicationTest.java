@@ -315,7 +315,7 @@ final class HarnessMainApplicationTest {
         int exitCode = application.run(new String[]{"ingest", inputPath.toString()});
 
         assertEquals(0, exitCode);
-        Path outputPath = tempDir.resolve("existing-chat_CONSOLIDATED.md");
+        Path outputPath = tempDir.resolve("existing-chat-CONSOLIDATED.md");
         assertTrue(Files.exists(outputPath));
         assertEquals("# Summary\nModule A refactored", Files.readString(outputPath));
         assertTrue(stdout.toString(StandardCharsets.UTF_8).contains("Wrote consolidated summary to:"));
@@ -338,10 +338,10 @@ final class HarnessMainApplicationTest {
         int exitCode = application.run(new String[]{"ingest", inputPath.toString(), "MyClaw"});
 
         assertEquals(0, exitCode);
-        Path outputPath = Path.of("MyClaw_CONSOLIDATED.md");
+        Path outputPath = Path.of("MyClaw-CONSOLIDATED.md");
         assertTrue(Files.exists(outputPath));
         assertEquals("# Summary\nModule B refactored", Files.readString(outputPath));
-        assertTrue(stdout.toString(StandardCharsets.UTF_8).contains("Wrote consolidated summary to: MyClaw_CONSOLIDATED.md"));
+        assertTrue(stdout.toString(StandardCharsets.UTF_8).contains("Wrote consolidated summary to: MyClaw-CONSOLIDATED.md"));
         Files.deleteIfExists(outputPath);
     }
 

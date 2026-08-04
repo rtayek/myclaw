@@ -68,13 +68,13 @@ public final class TranscriptIngestionService {
     public static Path computeOutputPath(Path inputFilePath, String projectName) {
         Objects.requireNonNull(inputFilePath, "inputFilePath");
         if (projectName != null && !projectName.isBlank()) {
-            return Path.of(projectName + "_CONSOLIDATED.md");
+            return Path.of(projectName + "-CONSOLIDATED.md");
         }
         Path fileNamePath = inputFilePath.getFileName();
         String fileName = fileNamePath == null ? "PROJECT" : fileNamePath.toString();
         int lastDot = fileName.lastIndexOf('.');
         String baseName = (lastDot > 0) ? fileName.substring(0, lastDot) : fileName;
-        return inputFilePath.resolveSibling(baseName + "_CONSOLIDATED.md");
+        return inputFilePath.resolveSibling(baseName + "-CONSOLIDATED.md");
     }
 
     public static String extractMessages(Path inputFilePath, String rawContent) {
@@ -109,7 +109,7 @@ public final class TranscriptIngestionService {
         return """
                 You are an expert AI software architect consolidating project progress from a chat transcript.
 
-                Please analyze the chat transcript provided below and generate a structured, consolidated project summary document (<Project>_CONSOLIDATED.md).
+                Please analyze the chat transcript provided below and generate a structured, consolidated project summary document (<Project>-CONSOLIDATED.md).
                 The summary should include:
                 1. Target Objective & High-level Overview
                 2. Key Architectural Decisions & Components

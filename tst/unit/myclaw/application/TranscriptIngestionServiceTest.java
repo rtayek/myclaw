@@ -41,7 +41,7 @@ final class TranscriptIngestionServiceTest {
 
         Path outputPath = ingestionService.ingest(inputPath);
 
-        Path expectedOutputPath = tempDir.resolve("myproject-chat_CONSOLIDATED.md");
+        Path expectedOutputPath = tempDir.resolve("myproject-chat-CONSOLIDATED.md");
         assertEquals(expectedOutputPath, outputPath);
         assertTrue(Files.exists(outputPath));
         assertEquals("# Summary\nFeature X was added.", Files.readString(outputPath));
@@ -73,7 +73,7 @@ final class TranscriptIngestionServiceTest {
 
         Path outputPath = ingestionService.ingest(inputPath, "claude");
 
-        assertEquals(tempDir.resolve("myproject_CONSOLIDATED.md"), outputPath);
+        assertEquals(tempDir.resolve("myproject-CONSOLIDATED.md"), outputPath);
         assertTrue(Files.exists(outputPath));
         assertEquals("Summary of Y", Files.readString(outputPath));
 
@@ -106,7 +106,7 @@ final class TranscriptIngestionServiceTest {
 
         Path outputPath = ingestionService.ingest(inputPath, "claude", "MyClaw");
 
-        assertEquals(Path.of("MyClaw_CONSOLIDATED.md"), outputPath);
+        assertEquals(Path.of("MyClaw-CONSOLIDATED.md"), outputPath);
         assertTrue(Files.exists(outputPath));
         assertEquals("Summary for MyClaw", Files.readString(outputPath));
         // clean up generated file at root
@@ -115,10 +115,10 @@ final class TranscriptIngestionServiceTest {
 
     @Test
     void computeOutputPathDerivesConsolidatedFilename() {
-        assertEquals(Path.of("/foo/bar/project_CONSOLIDATED.md"), TranscriptIngestionService.computeOutputPath(Path.of("/foo/bar/project.md")));
-        assertEquals(Path.of("chat_CONSOLIDATED.md"), TranscriptIngestionService.computeOutputPath(Path.of("chat.json")));
-        assertEquals(Path.of("test_CONSOLIDATED.md"), TranscriptIngestionService.computeOutputPath(Path.of("test")));
-        assertEquals(Path.of("MyClaw_CONSOLIDATED.md"), TranscriptIngestionService.computeOutputPath(Path.of("existing-chat.md"), "MyClaw"));
+        assertEquals(Path.of("/foo/bar/project-CONSOLIDATED.md"), TranscriptIngestionService.computeOutputPath(Path.of("/foo/bar/project.md")));
+        assertEquals(Path.of("chat-CONSOLIDATED.md"), TranscriptIngestionService.computeOutputPath(Path.of("chat.json")));
+        assertEquals(Path.of("test-CONSOLIDATED.md"), TranscriptIngestionService.computeOutputPath(Path.of("test")));
+        assertEquals(Path.of("MyClaw-CONSOLIDATED.md"), TranscriptIngestionService.computeOutputPath(Path.of("existing-chat.md"), "MyClaw"));
     }
 
     @Test
