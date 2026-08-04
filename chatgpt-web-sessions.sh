@@ -1,7 +1,7 @@
 #!/bin/sh
 # chatgpt-web-sessions.sh - Lists ChatGPT web chats via Playwright CDP (Chrome running on port 9222)
 
-CDP_URL="${1:-http://localhost:9222}"
+CDP_URL="${1:-http://127.0.0.1:9222}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 if [ -f "$SCRIPT_DIR/.gradle-build/libs/myclaw.jar" ]; then

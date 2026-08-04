@@ -15,7 +15,7 @@ import java.util.Optional;
 public class PlaywrightWebAdapter implements AutoCloseable {
     public record ChatWebSummary(String title, String url) {}
 
-    public static final String DEFAULT_CDP_URL = "http://localhost:9222";
+    public static final String DEFAULT_CDP_URL = "http://127.0.0.1:9222";
 
     private final String cdpUrl;
     private Playwright playwright;

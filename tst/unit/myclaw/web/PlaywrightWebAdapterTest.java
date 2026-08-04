@@ -10,7 +10,7 @@ final class PlaywrightWebAdapterTest {
     @Test
     void defaultCdpUrlIsLocalhost9222() {
         try (PlaywrightWebAdapter adapter = new PlaywrightWebAdapter()) {
-            assertEquals("http://localhost:9222", adapter.cdpUrl());
+            assertEquals("http://127.0.0.1:9222", adapter.cdpUrl());
             assertFalse(adapter.isConnected());
         }
     }
