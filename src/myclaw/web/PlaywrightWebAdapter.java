@@ -5,10 +5,16 @@ import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 
+import com.microsoft.playwright.Locator;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 public class PlaywrightWebAdapter implements AutoCloseable {
+    public record ChatWebSummary(String title, String url) {}
+
     public static final String DEFAULT_CDP_URL = "http://localhost:9222";
 
     private final String cdpUrl;
@@ -82,6 +88,28 @@ public class PlaywrightWebAdapter implements AutoCloseable {
         }
 
         return page.content();
+    }
+
+    public List<ChatWebSummary> listChatGPTChats() {
+        Page page = findOrOpenPage("https://chatgpt.com");
+        return listChatGPTChats(page);
+    }
+
+    public List<ChatWebSummary> listChatGPTChats(Page page) {
+        Objects.requireNonNull(page, "page");
+        List<ChatWebSummary> summaries = new ArrayList<>();
+        Locator chatLinks = page.locator("a[href*='/c/']");
+        int count = chatLinks.count();
+        for (int i = 0; i < count; i++) {
+            Locator link = chatLinks.nth(i);
+            String href = link.getAttribute("href");
+            String fullUrl = href != null && href.startsWith("/") ? "https://chatgpt.com" + href : href;
+            String title = link.innerText().strip();
+            if (fullUrl != null && !title.isBlank()) {
+                summaries.add(new ChatWebSummary(title, fullUrl));
+            }
+        }
+        return summaries;
     }
 
     public synchronized boolean isConnected() {

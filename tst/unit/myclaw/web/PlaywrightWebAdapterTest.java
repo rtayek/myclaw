@@ -30,4 +30,13 @@ final class PlaywrightWebAdapterTest {
         adapter.close();
         assertFalse(adapter.isConnected());
     }
+
+    @Test
+    void chatWebSummaryStoresTitleAndUrl() {
+        PlaywrightWebAdapter.ChatWebSummary summary = new PlaywrightWebAdapter.ChatWebSummary(
+                "MyClaw Architecture Chat", "https://chatgpt.com/c/123-abc"
+        );
+        assertEquals("MyClaw Architecture Chat", summary.title());
+        assertEquals("https://chatgpt.com/c/123-abc", summary.url());
+    }
 }
