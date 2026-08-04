@@ -48,6 +48,22 @@ Piped prompt:
 printf '%s\n' 'Say exactly: OK' | ./gradlew run --args='claude -'
 ```
 
+### ChatGPT Web Sessions
+
+`chatgpt-web-sessions.sh` lists ChatGPT web chats via Playwright CDP connecting to Chrome on debugging port `9222`:
+
+1. Launch Chrome with remote debugging enabled:
+   ```sh
+   sh start-chrome-cdp.sh
+   ```
+   *(Or launch manually with: `"C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --user-data-dir="$HOME/.chrome-cdp-profile" &`)*
+
+2. Log into your ChatGPT account in the newly opened Chrome browser window.
+3. Run the web sessions script:
+   ```sh
+   sh chatgpt-web-sessions.sh
+   ```
+
 ## Socket Transport
 
 The socket transport is implemented and covered by integration tests, but it

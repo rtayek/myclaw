@@ -55,6 +55,10 @@ public final class HarnessMainApplication {
             String cdpUrl = (args.length >= 2) ? args[1] : PlaywrightWebAdapter.DEFAULT_CDP_URL;
             try (PlaywrightWebAdapter adapter = new PlaywrightWebAdapter(cdpUrl)) {
                 var chats = adapter.listChatGPTChats();
+                if (!adapter.isConnectedViaCdp()) {
+                    System.err.println("Warning: Could not connect to Chrome remote debugging port at " + cdpUrl + ".");
+                    System.err.println("  (Launched a new browser instance. For logged-in sessions, launch Chrome with: chrome --remote-debugging-port=9222)");
+                }
                 if (chats.isEmpty()) {
                     System.out.println("No ChatGPT web chats found.");
                 } else {

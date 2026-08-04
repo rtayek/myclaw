@@ -9,6 +9,7 @@ import com.microsoft.playwright.Playwright;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -20,6 +21,7 @@ public class PlaywrightWebAdapter implements AutoCloseable {
     private final String cdpUrl;
     private Playwright playwright;
     private Browser browser;
+    private boolean connectedViaCdp = false;
 
     public PlaywrightWebAdapter() {
         this(DEFAULT_CDP_URL);
@@ -33,6 +35,10 @@ public class PlaywrightWebAdapter implements AutoCloseable {
         return cdpUrl;
     }
 
+    public boolean isConnectedViaCdp() {
+        return connectedViaCdp;
+    }
+
     public synchronized void connect() {
         if (playwright == null) {
             playwright = Playwright.create();
@@ -40,7 +46,9 @@ public class PlaywrightWebAdapter implements AutoCloseable {
         if (browser == null || !browser.isConnected()) {
             try {
                 browser = playwright.chromium().connectOverCDP(cdpUrl);
+                connectedViaCdp = true;
             } catch (Exception cdpException) {
+                connectedViaCdp = false;
                 browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false));
             }
         }
@@ -72,6 +80,54 @@ public class PlaywrightWebAdapter implements AutoCloseable {
         return submitToPage(page, prompt);
     }
 
+    public String submitToTitle(String title, String prompt) {
+        return submitToTitle(title, prompt, new ChatGptWebSessionResolver());
+    }
+
+    public String submitToTitle(String title, String prompt, ChatGptWebSessionResolver resolver) {
+        Objects.requireNonNull(title, "title");
+        Objects.requireNonNull(prompt, "prompt");
+
+        String url = null;
+        if (resolver != null) {
+            try {
+                Map<String, String> sessions = resolver.resolveSessions(cdpUrl);
+                url = findMatchingUrl(sessions, title);
+            } catch (Exception ignored) {
+            }
+        }
+
+        if (url == null && isConnected()) {
+            List<ChatWebSummary> summaries = listChatGPTChats();
+            Map<String, String> map = new java.util.LinkedHashMap<>();
+            for (ChatWebSummary s : summaries) {
+                map.put(s.title(), s.url());
+            }
+            url = findMatchingUrl(map, title);
+        }
+
+        if (url == null) {
+            throw new IllegalArgumentException("No ChatGPT web chat found with title: " + title);
+        }
+
+        return submitPrompt(url, prompt);
+    }
+
+    private static String findMatchingUrl(Map<String, String> sessions, String title) {
+        if (sessions == null || sessions.isEmpty()) {
+            return null;
+        }
+        if (sessions.containsKey(title)) {
+            return sessions.get(title);
+        }
+        for (Map.Entry<String, String> entry : sessions.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase(title)) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
     public String submitToPage(Page page, String prompt) {
         Objects.requireNonNull(page, "page");
         Objects.requireNonNull(prompt, "prompt");
@@ -101,16 +157,35 @@ public class PlaywrightWebAdapter implements AutoCloseable {
 
     public List<ChatWebSummary> listChatGPTChats(Page page) {
         Objects.requireNonNull(page, "page");
+        try {
+            page.waitForSelector("a[href*='/c/'], a[href*='/g/']", new Page.WaitForSelectorOptions().setTimeout(3000));
+        } catch (Exception ignored) {
+            // Sidebar links may take time or may not exist if logged out
+        }
+
         List<ChatWebSummary> summaries = new ArrayList<>();
-        Locator chatLinks = page.locator("a[href*='/c/']");
+        java.util.Set<String> seenUrls = new java.util.LinkedHashSet<>();
+        Locator chatLinks = page.locator("a[href*='/c/'], a[href*='/g/']");
         int count = chatLinks.count();
         for (int i = 0; i < count; i++) {
             Locator link = chatLinks.nth(i);
             String href = link.getAttribute("href");
-            String fullUrl = href != null && href.startsWith("/") ? "https://chatgpt.com" + href : href;
+            if (href == null || href.isBlank()) {
+                continue;
+            }
+            String fullUrl = href.startsWith("/") ? "https://chatgpt.com" + href : href;
             String title = link.innerText().strip();
-            if (fullUrl != null && !title.isBlank()) {
-                summaries.add(new ChatWebSummary(title, fullUrl));
+            if (title.isBlank()) {
+                title = link.getAttribute("title");
+            }
+            if (title == null || title.isBlank()) {
+                title = link.getAttribute("aria-label");
+            }
+            if (title == null || title.isBlank()) {
+                title = "Untitled Chat";
+            }
+            if (seenUrls.add(fullUrl)) {
+                summaries.add(new ChatWebSummary(title.strip(), fullUrl));
             }
         }
         return summaries;
@@ -136,5 +211,7 @@ public class PlaywrightWebAdapter implements AutoCloseable {
             }
             playwright = null;
         }
+        connectedViaCdp = false;
     }
 }
+
