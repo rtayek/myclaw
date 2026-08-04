@@ -4,6 +4,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import myclaw.domain.ChatData;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
 import myclaw.backend.AiBackendException;
 import myclaw.transcript.ResultReporter;
 import myclaw.transcript.TranscriptWriteException;
@@ -12,14 +19,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
-import myclaw.backend.AiBackendException;
-import myclaw.transcript.ResultReporter;
-import myclaw.transcript.TranscriptWriteException;
-
 import myclaw.web.PlaywrightWebAdapter;
 
 public final class HarnessMainApplication {
-    private static final String USAGE = "Usage: java -jar ai-harness.jar <backend> \"prompt\" | ingest <chat-file-path> [projectName] [backend] | sessions [backend] | submit [--session <session-id>] --prompt \"prompt\" [backend] | web-sessions [cdpUrl] | web-submit [--url <chatUrl> | --title <chatTitle>] --prompt \"prompt\" [projectName] [cdpUrl]";
+    private static final String USAGE = "Usage: java -jar ai-harness.jar <backend> \"prompt\" | ingest <chat-file-path> [projectName] [backend] | sessions [backend] | submit [--session <session-id>] --prompt \"prompt\" [backend] | web-sessions [--verbose|--json] [cdpUrl] | web-submit [--url <chatUrl> | --title <chatTitle>] --prompt \"prompt\" [projectName] [cdpUrl]";
 
     private final PromptService promptService;
     private final TranscriptIngestionService ingestionService;
@@ -53,18 +56,48 @@ public final class HarnessMainApplication {
         }
 
         if ("web-sessions".equalsIgnoreCase(args[0]) || "chatgpt-web".equalsIgnoreCase(args[0])) {
-            String cdpUrl = (args.length >= 2) ? args[1] : PlaywrightWebAdapter.DEFAULT_CDP_URL;
+            boolean verbose = false;
+            boolean json = false;
+            String cdpUrl = PlaywrightWebAdapter.DEFAULT_CDP_URL;
+
+            for (int i = 1; i < args.length; i++) {
+                String arg = args[i];
+                if ("--verbose".equalsIgnoreCase(arg) || "-v".equalsIgnoreCase(arg) || "--metadata".equalsIgnoreCase(arg) || "-m".equalsIgnoreCase(arg)) {
+                    verbose = true;
+                } else if ("--json".equalsIgnoreCase(arg) || "-j".equalsIgnoreCase(arg)) {
+                    json = true;
+                } else if (arg.startsWith("http://") || arg.startsWith("https://")) {
+                    cdpUrl = arg;
+                }
+            }
+
             try (PlaywrightWebAdapter adapter = new PlaywrightWebAdapter(cdpUrl)) {
-                var chats = adapter.listChatGPTChats();
+                var summaries = adapter.listChatGPTChats();
                 if (!adapter.isConnectedViaCdp()) {
                     System.err.println("Warning: Could not connect to Chrome remote debugging port at " + cdpUrl + ".");
                     System.err.println("  (Launched a new browser instance. For logged-in sessions, launch Chrome with: chrome --remote-debugging-port=9222)");
                 }
-                if (chats.isEmpty()) {
+                if (summaries.isEmpty()) {
                     System.out.println("No ChatGPT web chats found.");
                 } else {
-                    for (var chat : chats) {
-                        System.out.println(chat.title() + " -> " + chat.url());
+                    List<ChatData> chatDataList = new ArrayList<>();
+                    String now = Instant.now().toString();
+                    for (var s : summaries) {
+                        chatDataList.add(ChatData.create("MyClaw", s.title(), s.url(), "chatgpt", now));
+                    }
+
+                    if (json) {
+                        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                        System.out.println(gson.toJson(chatDataList));
+                    } else if (verbose) {
+                        for (var c : chatDataList) {
+                            System.out.printf("[%s] %s (ID: %s)\n  URL: %s\n  Provider: %s | LastActive: %s\n\n",
+                                    c.projectName(), c.title(), c.chatId(), c.webUrl(), c.provider(), c.lastActive());
+                        }
+                    } else {
+                        for (var chat : summaries) {
+                            System.out.println(chat.title() + " -> " + chat.url());
+                        }
                     }
                 }
                 return 0;
