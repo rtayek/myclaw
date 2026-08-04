@@ -15,8 +15,10 @@ import myclaw.backend.AiBackendException;
 import myclaw.transcript.ResultReporter;
 import myclaw.transcript.TranscriptWriteException;
 
+import myclaw.web.PlaywrightWebAdapter;
+
 public final class HarnessMainApplication {
-    private static final String USAGE = "Usage: java -jar ai-harness.jar <backend> \"prompt\" | ingest <chat-file-path> [projectName] [backend] | sessions [backend] | submit [--session <session-id>] --prompt \"prompt\" [backend]";
+    private static final String USAGE = "Usage: java -jar ai-harness.jar <backend> \"prompt\" | ingest <chat-file-path> [projectName] [backend] | sessions [backend] | submit [--session <session-id>] --prompt \"prompt\" [backend] | web-sessions [cdpUrl]";
 
     private final PromptService promptService;
     private final TranscriptIngestionService ingestionService;
@@ -47,6 +49,24 @@ public final class HarnessMainApplication {
         if (args.length == 0) {
             reporter.reportUsageError(USAGE);
             return 2;
+        }
+
+        if ("web-sessions".equalsIgnoreCase(args[0]) || "chatgpt-web".equalsIgnoreCase(args[0])) {
+            String cdpUrl = (args.length >= 2) ? args[1] : PlaywrightWebAdapter.DEFAULT_CDP_URL;
+            try (PlaywrightWebAdapter adapter = new PlaywrightWebAdapter(cdpUrl)) {
+                var chats = adapter.listChatGPTChats();
+                if (chats.isEmpty()) {
+                    System.out.println("No ChatGPT web chats found.");
+                } else {
+                    for (var chat : chats) {
+                        System.out.println(chat.title() + " -> " + chat.url());
+                    }
+                }
+                return 0;
+            } catch (Exception exception) {
+                reporter.reportUsageError("Could not list ChatGPT web chats: " + exception.getMessage());
+                return 1;
+            }
         }
 
         if ("sessions".equalsIgnoreCase(args[0])) {
