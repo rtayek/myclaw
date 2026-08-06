@@ -81,7 +81,8 @@ public final class TranscriptIngestionService {
         Objects.requireNonNull(inputFilePath, "inputFilePath");
         Objects.requireNonNull(rawContent, "rawContent");
 
-        String fileName = inputFilePath.getFileName() != null ? inputFilePath.getFileName().toString().toLowerCase() : "";
+        Path fileNamePath = inputFilePath.getFileName();
+        String fileName = (fileNamePath != null) ? fileNamePath.toString().toLowerCase() : "";
         String trimmed = rawContent.trim();
         boolean isJson = fileName.endsWith(".json") || trimmed.startsWith("{") || trimmed.startsWith("[");
 
@@ -107,19 +108,19 @@ public final class TranscriptIngestionService {
 
     public static String wrapInSummarizationPrompt(String content) {
         return """
-                You are an expert AI software architect consolidating project progress from a chat transcript.
-
-                Please analyze the chat transcript provided below and generate a structured, consolidated project summary document (<Project>-CONSOLIDATED.md).
-                The summary should include:
-                1. Target Objective & High-level Overview
-                2. Key Architectural Decisions & Components
-                3. Implementation Details & Key Findings
-                4. Current Status & Next Action Steps
-
-                Chat Transcript:
-                ---
-                %s
-                ---
+                You are an expert AI software architect consolidating project progress from a chat transcript.%n\
+                %n\
+                Please analyze the chat transcript provided below and generate a structured, consolidated project summary document (<Project>-CONSOLIDATED.md).%n\
+                The summary should include:%n\
+                1. Target Objective & High-level Overview%n\
+                2. Key Architectural Decisions & Components%n\
+                3. Implementation Details & Key Findings%n\
+                4. Current Status & Next Action Steps%n\
+                %n\
+                Chat Transcript:%n\
+                ---%n\
+                %s%n\
+                ---%n\
                 """.formatted(content);
     }
 

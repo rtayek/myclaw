@@ -24,7 +24,11 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import myclaw.application.PromptService;
-import myclaw.backend.*;
+import myclaw.backend.AiBackend;
+import myclaw.backend.AiBackendExecutionException;
+import myclaw.backend.AiRequest;
+import myclaw.backend.AiResponse;
+import myclaw.backend.BackendId;
 import myclaw.execution.CommandResult;
 import myclaw.transcript.TranscriptWriter;
 

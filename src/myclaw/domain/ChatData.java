@@ -1,6 +1,5 @@
 package myclaw.domain;
 
-import java.util.Objects;
 
 /**
  * Record representing metadata for a chat session.

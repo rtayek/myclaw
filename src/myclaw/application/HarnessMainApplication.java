@@ -91,7 +91,7 @@ public final class HarnessMainApplication {
                         System.out.println(gson.toJson(chatDataList));
                     } else if (verbose) {
                         for (var c : chatDataList) {
-                            System.out.printf("[%s] %s (ID: %s)\n  URL: %s\n  Provider: %s | LastActive: %s\n\n",
+                            System.out.printf("[%s] %s (ID: %s)%n  URL: %s%n  Provider: %s | LastActive: %s%n%n",
                                     c.projectName(), c.title(), c.chatId(), c.webUrl(), c.provider(), c.lastActive());
                         }
                     } else {

@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import myclaw.execution.CommandResult;
 
-public sealed abstract class AiBackendException extends RuntimeException
+public abstract sealed class AiBackendException extends RuntimeException
         permits AiBackendStartupException, AiBackendExecutionException, AiBackendUnsupportedRequestException {
     private static final long serialVersionUID = 1L;
 

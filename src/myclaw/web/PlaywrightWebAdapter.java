@@ -54,7 +54,7 @@ public class PlaywrightWebAdapter implements AutoCloseable {
         }
     }
 
-    public Page findOrOpenPage(String chatUrl) {
+    public synchronized Page findOrOpenPage(String chatUrl) {
         connect();
         BrowserContext context = browser.contexts().isEmpty()
                 ? browser.newContext()

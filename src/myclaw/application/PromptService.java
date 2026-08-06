@@ -84,7 +84,8 @@ public final class PromptService {
                 sessionStore.listSessions().stream()
                         .map(summary -> summary.sessionId().value())
                         .forEach(sessions::add);
-            } catch (Exception ignored) {
+            } catch (RuntimeException ignored) {
+                // Store unavailable, proceed to CLI discovery
             }
         }
 

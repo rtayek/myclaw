@@ -1,6 +1,10 @@
 plugins {
     id 'application'
     id 'java'
+    id 'checkstyle'
+    id 'pmd'
+    id 'com.github.spotbugs' version '6.0.26'
+    id 'jacoco'
 }
 
 group = 'com.ray'
@@ -156,3 +160,68 @@ jar {
         attributes 'Main-Class': application.mainClass.get()
     }
 }
+
+// -----------------------------------------------------------------------------
+// Checkstyle
+// -----------------------------------------------------------------------------
+checkstyle {
+    toolVersion = '10.18.0'
+    configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+    ignoreFailures = false
+    showViolations = true
+}
+
+// -----------------------------------------------------------------------------
+// PMD
+// -----------------------------------------------------------------------------
+pmd {
+    toolVersion = '7.4.0'
+    consoleOutput = true
+    ignoreFailures = false
+    ruleSets = []
+    ruleSetConfig = resources.text.fromFile(file("${rootDir}/config/pmd/pmd.xml"))
+}
+
+// -----------------------------------------------------------------------------
+// SpotBugs
+// -----------------------------------------------------------------------------
+spotbugs {
+    toolVersion = '4.8.6'
+    ignoreFailures = false
+    effort = 'max'
+    reportLevel = 'medium'
+    excludeFilter = file("${rootDir}/config/spotbugs/exclude.xml")
+}
+
+spotbugsMain {
+    reports {
+        html {
+            required = true
+            outputLocation = layout.buildDirectory.file("reports/spotbugs/main.html")
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// JaCoCo Code Coverage
+// -----------------------------------------------------------------------------
+jacoco {
+    toolVersion = '0.8.12'
+}
+
+tasks.named('test') {
+    finalizedBy tasks.named('jacocoTestReport')
+}
+
+tasks.named('jacocoTestReport') {
+    dependsOn tasks.named('test')
+    reports {
+        xml.required = true
+        html.required = true
+        html.outputLocation = layout.buildDirectory.dir("reports/jacoco/html")
+    }
+}
+
+// Unified check task lifecycle execution
+check.dependsOn checkstyleMain, pmdMain, spotbugsMain, jacocoTestReport
+

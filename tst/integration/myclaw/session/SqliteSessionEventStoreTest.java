@@ -106,7 +106,6 @@ final class SqliteSessionEventStoreTest {
 
     private static final class CapturingBackend implements AiBackend {
         private final AiBackend backend;
-        private AiRequest request;
 
         private CapturingBackend(AiBackend backend) {
             this.backend = backend;
@@ -114,7 +113,6 @@ final class SqliteSessionEventStoreTest {
 
         @Override
         public AiResponse ask(AiRequest request) {
-            this.request = request;
             return backend.ask(request);
         }
     }

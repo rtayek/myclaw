@@ -5,7 +5,10 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.util.List;
 
-import myclaw.execution.*;
+import myclaw.execution.CommandExecutionException;
+import myclaw.execution.CommandExecutor;
+import myclaw.execution.CommandRequest;
+import myclaw.execution.CommandResult;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;

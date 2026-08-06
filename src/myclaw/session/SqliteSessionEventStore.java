@@ -1,7 +1,6 @@
 package myclaw.session;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.nio.file.Path;

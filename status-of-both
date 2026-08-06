@@ -1,0 +1,46 @@
+# Where Things Stand — MyClaw and ChatMap
+
+*A plain reference, not a task list. Come back to this any time.*
+
+## The two projects, in one sentence each
+
+**MyClaw** — the accessible desktop app that talks to AI backends (Claude, Ollama, others) and captures live conversations as they happen.
+
+**ChatMap** — the app that stores, searches, and exports conversations, turning them into durable, organized knowledge instead of a pile of transcripts.
+
+## The decision that was made
+
+Build going forward on **ChatMap**, not a new third project.
+
+Two reasons this was reconsidered:
+1. There was a real pull toward a clean break — a fresh start feels lighter.
+2. It turned out ChatMap already has more built than it looked like at first glance. It is a working app already, not just a design document. It runs, it has tests, and it already does the core job: read chats in, store them, search them, export them back out as Markdown.
+
+Starting a fourth repo would mean rebuilding something that already exists and already works.
+
+## What ChatMap already does today
+
+- Runs as a real desktop app (JavaFX).
+- Has a command-line tool that scans a folder of chat files, imports them, and writes out organized Markdown summaries per project.
+- Can read plain text, Markdown, and ChatGPT export files.
+- Stores everything in a local database and can search the text.
+- Has a working test suite.
+
+## What is still missing
+
+- A way to feed it live conversations automatically, instead of only files you export by hand.
+- Automation and scheduling, so it can run on its own instead of needing to be run manually each time.
+
+## Where MyClaw and OpenClaw fit in from here
+
+- **MyClaw** has a piece that watches ChatGPT's web app and pulls out chat titles and links. That piece can feed ChatMap directly.
+- **MyClaw's** connections to Claude and Ollama are the live-capture side — the thing that hands ChatMap fresh conversations as they happen.
+- **OpenClaw** has the scheduling and automation pieces (the parts that run on a timer, or post to Discord/Telegram) already built. Those can be reused to make ChatMap's import step run automatically instead of by hand.
+
+## The one concrete next step
+
+Take the ChatGPT-web-watching piece and the Claude/Ollama connections out of MyClaw, and connect them to ChatMap's existing import step — so conversations flow into ChatMap on their own, instead of needing an exported file first.
+
+---
+
+*You mentioned there was something else you wanted to say but it slipped your mind — no rush. It'll come back, or just bring it up whenever it does.*
